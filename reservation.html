@@ -562,6 +562,72 @@
             background-color: #4a5568;
             border-color: #4a5568;
         }
+
+                /* Overview Card Scrollbars */
+        .recent-reservations-scroll {
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f7fafc;
+        }
+
+        .recent-reservations-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .recent-reservations-scroll::-webkit-scrollbar-track {
+            background: #f7fafc;
+            border-radius: 3px;
+        }
+
+        .recent-reservations-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e0;
+            border-radius: 3px;
+            border: 2px solid #f7fafc;
+        }
+
+        .recent-reservations-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: #a0aec0;
+        }
+
+        /* Fix table layout for scrollable cards */
+        .overview-card .table {
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .overview-card .table th {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 1;
+            box-shadow: 0 1px 0 #e2e8f0;
+        }
+
+        .overview-card .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .overview-card .table-sm th,
+        .overview-card .table-sm td {
+            padding: 8px 10px;
+            white-space: nowrap;
+        }
+
+        .overview-card .table-sm th {
+            font-size: 0.8rem;
+            background-color: #f8fafc;
+        }
+
+        .overview-card .table-sm td {
+            font-size: 0.85rem;
+        }
+
+        /* Hover effect for table rows */
+        .overview-card .table tbody tr:hover {
+            background-color: rgba(44, 82, 130, 0.05);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -1041,6 +1107,7 @@
                 </div>
 
                 <!-- Overview Tab -->
+                <!-- Overview Tab -->
                 <div class="tab-pane fade" id="overviewTab">
                     <div class="row mb-4">
                         <div class="col-12">
@@ -1149,9 +1216,10 @@
                             <div class="card dashboard-card overview-card passenger-reserved">
                                 <div class="card-header" style="background: var(--warning-color);">
                                     <h6 class="mb-0"><i class="fas fa-calendar me-2"></i> Reserved Passengers</h6>
+                                    <small class="opacity-75" id="reservedCount">0 guests</small>
                                 </div>
                                 <div class="card-body p-0">
-                                    <div class="recent-reservations-scroll" style="max-height: 300px;">
+                                    <div class="recent-reservations-scroll">
                                         <table class="table table-sm mb-0">
                                             <thead>
                                                 <tr>
@@ -1172,9 +1240,10 @@
                             <div class="card dashboard-card overview-card passenger-checkedin">
                                 <div class="card-header" style="background: var(--success-color);">
                                     <h6 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i> Checked-In Passengers</h6>
+                                    <small class="opacity-75" id="checkedinCount">0 guests</small>
                                 </div>
                                 <div class="card-body p-0">
-                                    <div class="recent-reservations-scroll" style="max-height: 300px;">
+                                    <div class="recent-reservations-scroll">
                                         <table class="table table-sm mb-0">
                                             <thead>
                                                 <tr>
@@ -1195,9 +1264,10 @@
                             <div class="card dashboard-card overview-card passenger-foc">
                                 <div class="card-header" style="background: var(--foc-color);">
                                     <h6 class="mb-0"><i class="fas fa-gift me-2"></i> FOC Passengers</h6>
+                                    <small class="opacity-75" id="focCount">0 guests</small>
                                 </div>
                                 <div class="card-body p-0">
-                                    <div class="recent-reservations-scroll" style="max-height: 300px;">
+                                    <div class="recent-reservations-scroll">
                                         <table class="table table-sm mb-0">
                                             <thead>
                                                 <tr>
@@ -1218,9 +1288,10 @@
                             <div class="card dashboard-card overview-card passenger-checkedout">
                                 <div class="card-header" style="background: var(--info-color);">
                                     <h6 class="mb-0"><i class="fas fa-sign-out-alt me-2"></i> Checked-Out Passengers</h6>
+                                    <small class="opacity-75" id="checkedoutCount">0 guests</small>
                                 </div>
                                 <div class="card-body p-0">
-                                    <div class="recent-reservations-scroll" style="max-height: 300px;">
+                                    <div class="recent-reservations-scroll">
                                         <table class="table table-sm mb-0">
                                             <thead>
                                                 <tr>
@@ -1241,9 +1312,10 @@
                             <div class="card dashboard-card overview-card passenger-noshow">
                                 <div class="card-header" style="background: var(--noshow-color);">
                                     <h6 class="mb-0"><i class="fas fa-times-circle me-2"></i> No-Show Passengers</h6>
+                                    <small class="opacity-75" id="noshowCount">0 guests</small>
                                 </div>
                                 <div class="card-body p-0">
-                                    <div class="recent-reservations-scroll" style="max-height: 300px;">
+                                    <div class="recent-reservations-scroll">
                                         <table class="table table-sm mb-0">
                                             <thead>
                                                 <tr>
@@ -2616,62 +2688,7 @@
                 document.getElementById('reportCustomerFilter').value = '';
             }
 
-            async generateReport() {
-                const fromDateInput = document.getElementById('reportFromDate');
-                const toDateInput = document.getElementById('reportToDate');
-                const flightSelect = document.getElementById('reportFlightFilter');
-                const customerSelect = document.getElementById('reportCustomerFilter');
-                
-                if (!fromDateInput || !toDateInput) return;
-                
-                const fromDate = fromDateInput.value;
-                const toDate = toDateInput.value;
-                const flightFilter = flightSelect ? flightSelect.value : '';
-                const customerFilter = customerSelect ? customerSelect.value : '';
-                
-                if (fromDate && toDate && fromDate > toDate) {
-                    alert('From date cannot be after To date');
-                    return;
-                }
-                
-                try {
-                    const snapshot = await this.db.collection('reservations').get();
-                    const reservations = [];
-                    
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        const id = doc.id;
-                        
-                        // Apply date filter
-                        if (fromDate && toDate) {
-                            const checkDate = data.checkoutDate || data.checkinDate || data.reservationDate;
-                            if (!checkDate) return;
-                            
-                            if (checkDate < fromDate || checkDate > toDate) {
-                                return;
-                            }
-                        }
-                        
-                        // Apply flight filter
-                        if (flightFilter && data.flightHotel !== flightFilter) return;
-                        
-                        // Apply customer filter
-                        if (customerFilter && data.customer !== customerFilter) return;
-                        
-                        reservations.push({ id, ...data });
-                    });
-                    
-                    if (reservations.length === 0) {
-                        alert('No reservations found for the selected criteria.');
-                        return;
-                    }
-                    
-                    this.displayReport(reservations, fromDate, toDate);
-                } catch (error) {
-                    console.error('Error generating report:', error);
-                    alert('Error generating report. Please try again.');
-                }
-            }
+            
 
             async generateFOCReport() {
                 const fromDateInput = document.getElementById('reportFromDate');
@@ -3911,13 +3928,20 @@
 
             displayOverviewList(elementId, list, type) {
                 const element = document.getElementById(elementId);
+                const countElement = document.getElementById(`${type}Count`);
+                
                 if (!element) return;
+                
+                // Update count badge
+                if (countElement) {
+                    countElement.textContent = `${list.length} ${list.length === 1 ? 'guest' : 'guests'}`;
+                }
                 
                 if (list.length === 0) {
                     element.innerHTML = `
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-2">
-                                No ${type} passengers
+                            <td colspan="3" class="text-center text-muted py-4">
+                                No ${type.replace(/([A-Z])/g, ' $1').toLowerCase()} passengers
                             </td>
                         </tr>
                     `;
@@ -3925,43 +3949,45 @@
                 }
                 
                 let html = '';
-                const displayLimit = Math.min(10, list.length);
                 
-                for (let i = 0; i < displayLimit; i++) {
+                for (let i = 0; i < list.length; i++) {
                     const item = list[i];
                     
                     let statusBadge = '';
+                    let timeInfo = '';
+                    
                     if (type === 'reserved') {
                         statusBadge = '<span class="badge bg-warning text-dark">Reserved</span>';
+                        timeInfo = item.eta || '';
                     } else if (type === 'checkedin') {
-                        statusBadge = `<span class="badge bg-success">${item.checkinTime || 'Checked In'}</span>`;
+                        statusBadge = '<span class="badge bg-success">Checked-In</span>';
+                        timeInfo = item.checkinTime || '';
                     } else if (type === 'checkedout') {
-                        statusBadge = `<span class="badge bg-info">${item.checkoutTime || 'Checked Out'}</span>`;
+                        statusBadge = '<span class="badge bg-info">Checked-Out</span>';
+                        timeInfo = item.checkoutTime || '';
                     } else if (type === 'foc') {
-                        statusBadge = item.status.includes('checked-in') ? 
-                            '<span class="badge bg-foc">FOC Checked-In</span>' : 
-                            item.status.includes('checked-out') ? 
-                            '<span class="badge bg-foc">FOC Checked-Out</span>' : 
-                            '<span class="badge bg-foc">FOC Reserved</span>';
+                        if (item.status.includes('checked-in')) {
+                            statusBadge = '<span class="badge bg-success">Checked-In</span>';
+                            timeInfo = item.checkinTime || '';
+                        } else if (item.status.includes('checked-out')) {
+                            statusBadge = '<span class="badge bg-info">Checked-Out</span>';
+                            timeInfo = item.checkoutTime || '';
+                        } else if (item.status.includes('reserved')) {
+                            statusBadge = '<span class="badge bg-warning">Reserved</span>';
+                            timeInfo = item.eta || '';
+                        } else {
+                            statusBadge = '<span class="badge bg-foc">FOC</span>';
+                        }
                     } else if (type === 'noshow') {
                         statusBadge = '<span class="badge bg-secondary">No-Show</span>';
+                        timeInfo = item.eta || '';
                     }
                     
                     html += `
-                        <tr onclick="app.showReservationDetails('${item.id}')" style="cursor: pointer;">
-                            <td>${item.guestName}</td>
+                        <tr onclick="app.showReservationDetails('${item.id}')" style="cursor: pointer;" title="Click to view details">
+                            <td><strong>${item.guestName}</strong></td>
                             <td>${item.flightHotel}</td>
-                            <td>${statusBadge}</td>
-                        </tr>
-                    `;
-                }
-                
-                if (list.length > displayLimit) {
-                    html += `
-                        <tr>
-                            <td colspan="3" class="text-center text-muted py-1">
-                                + ${list.length - displayLimit} more
-                            </td>
+                            <td>${type === 'foc' ? statusBadge : timeInfo}</td>
                         </tr>
                     `;
                 }
