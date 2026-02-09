@@ -48,6 +48,31 @@
             border: 1px solid #e2e8f0;
         }
         
+        /* BLACK HEADERS */
+        .card-header {
+            background: #000000 !important;
+            color: white !important;
+            font-weight: 600;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: none;
+        }
+        
+        .modal-header {
+            background: #000000 !important;
+            color: white !important;
+            border-bottom: none;
+            padding: 20px;
+        }
+        
+        .navbar {
+            background: #000000 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 12px 0;
+        }
+        
         .login-container { 
             max-width: 420px; 
             margin: 80px auto; 
@@ -63,9 +88,9 @@
         }
         
         .nav-link.active { 
-            background: var(--gradient-primary);
+            background: #000000;
             color: white;
-            box-shadow: 0 4px 8px rgba(13, 148, 136, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
         .nav-link:hover:not(.active) {
@@ -139,7 +164,7 @@
             padding: 20px;
             border-radius: var(--border-radius);
             margin-bottom: 20px;
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid #000000;
         }
         
         /* Form styles */
@@ -168,8 +193,15 @@
         }
         
         .btn-primary {
-            background: var(--gradient-primary);
+            background: #000000;
             color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #333333;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
         /* Stats cards */
@@ -191,7 +223,7 @@
         .stat-number {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--primary-color);
+            color: #000000;
             margin-bottom: 5px;
         }
         
@@ -204,7 +236,7 @@
         
         .definition-box {
             background: #f0fdfa;
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid #000000;
             padding: 15px;
             border-radius: var(--border-radius);
             margin-bottom: 20px;
@@ -216,6 +248,26 @@
             padding: 20px;
             box-shadow: var(--box-shadow);
             border: 1px solid #e2e8f0;
+        }
+        
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+        }
+        
+        /* Report filters */
+        .report-filters {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -351,6 +403,10 @@
                                             <label class="form-label">Nationality</label>
                                             <input type="text" id="nationality" class="form-control" required>
                                         </div>
+                                        <div class="col-md-8">
+                                            <label class="form-label">Remarks</label>
+                                            <textarea id="remarks" class="form-control" rows="2"></textarea>
+                                        </div>
                                         <div class="col-md-12">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="isFOC">
@@ -403,6 +459,10 @@
                                         <div class="col-md-3">
                                             <label class="form-label">Flight/Hotel</label>
                                             <input type="text" id="checkinFlightFilter" class="form-control" placeholder="Filter flight/hotel">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Customer</label>
+                                            <input type="text" id="checkinCustomerFilter" class="form-control" placeholder="Filter customer">
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label">Status</label>
@@ -482,6 +542,10 @@
                                             <input type="text" id="checkoutFlightFilter" class="form-control" placeholder="Filter flight/hotel">
                                         </div>
                                         <div class="col-md-3">
+                                            <label class="form-label">Customer</label>
+                                            <input type="text" id="checkoutCustomerFilter" class="form-control" placeholder="Filter customer">
+                                        </div>
+                                        <div class="col-md-3">
                                             <label class="form-label">Status</label>
                                             <select id="checkoutStatusFilter" class="form-select">
                                                 <option value="">All</option>
@@ -538,7 +602,7 @@
                         <div class="definition-box">
                             <div class="definition-title">"Active Now" Definition</div>
                             <div class="definition-text">
-                                "Active Now" shows guests who are currently checked in but not yet checked out.
+                                "Active Now" shows guests who are currently checked in (arrived at lounge) but not yet checked out.
                                 This is calculated from the check-in time until check-out completion.
                             </div>
                         </div>
@@ -609,6 +673,25 @@
                                     </table>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="breakdown-card">
+                                    <div class="breakdown-header">Recent Activity</div>
+                                    <div class="table-responsive" style="max-height: 250px;">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Time</th>
+                                                    <th>Guest</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="recentActivity">
+                                                <!-- Data will be loaded here -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -619,8 +702,8 @@
                                 <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i> Reports</h5>
                             </div>
                             <div class="card-body">
-                                <div class="filter-section">
-                                    <div class="row g-2">
+                                <div class="report-filters">
+                                    <div class="row g-3">
                                         <div class="col-md-3">
                                             <label class="form-label">From Date</label>
                                             <input type="date" id="reportFromDate" class="form-control">
@@ -630,17 +713,46 @@
                                             <input type="date" id="reportToDate" class="form-control">
                                         </div>
                                         <div class="col-md-3">
+                                            <label class="form-label">Customer</label>
+                                            <input type="text" id="reportCustomerFilter" class="form-control" placeholder="Filter by customer">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Flight/Hotel</label>
+                                            <input type="text" id="reportFlightFilter" class="form-control" placeholder="Filter by flight/hotel">
+                                        </div>
+                                        <div class="col-md-3">
                                             <label class="form-label">Report Type</label>
                                             <select id="reportType" class="form-select">
                                                 <option value="all">All Guests</option>
                                                 <option value="foc">FOC Only</option>
                                                 <option value="noshow">No-Show Only</option>
+                                                <option value="arrival">Arrival Only</option>
+                                                <option value="departure">Departure Only</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-3">
-                                            <button id="generateReportBtn" class="btn btn-primary mt-4">
-                                                <i class="fas fa-file-pdf me-1"></i> Generate PDF
+                                        <div class="col-md-12 mt-3">
+                                            <button id="generatePdfReportBtn" class="btn btn-primary">
+                                                <i class="fas fa-file-pdf me-1"></i> Generate PDF Report
                                             </button>
+                                            <button id="generateExcelReportBtn" class="btn btn-success ms-2">
+                                                <i class="fas fa-file-excel me-1"></i> Export to Excel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Report Preview -->
+                                <div id="reportPreview" class="mt-4" style="display: none;">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0"><i class="fas fa-eye me-2"></i> Report Preview</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm" id="reportPreviewTable">
+                                                    <!-- Preview data will be loaded here -->
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -652,10 +764,91 @@
         </div>
     </div>
 
+    <!-- Edit Reservation Modal -->
+    <div class="modal fade" id="editReservationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i> Edit Reservation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editReservationForm">
+                        <input type="hidden" id="editReservationId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Customer</label>
+                                <input type="text" id="editCustomer" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Date</label>
+                                <input type="date" id="editReservationDate" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Flight/Hotel</label>
+                                <input type="text" id="editFlightHotel" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">STA</label>
+                                <input type="time" id="editSta" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Direction</label>
+                                <select id="editDirection" class="form-select" required>
+                                    <option value="Arrival">Arrival</option>
+                                    <option value="Departure">Departure</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Guest Name</label>
+                                <input type="text" id="editGuestName" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nationality</label>
+                                <input type="text" id="editNationality" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status</label>
+                                <select id="editStatus" class="form-select">
+                                    <option value="reserved">Reserved</option>
+                                    <option value="checked-in">Checked-In</option>
+                                    <option value="checked-out">Checked-Out</option>
+                                    <option value="foc-reserved">FOC Reserved</option>
+                                    <option value="foc-checkedin">FOC Checked-In</option>
+                                    <option value="foc-checkedout">FOC Checked-Out</option>
+                                    <option value="noshow">No-Show</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Guest Type</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="editIsFOC">
+                                    <label class="form-check-label" for="editIsFOC">
+                                        Free of Charge (FOC)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Remarks</label>
+                                <textarea id="editRemarks" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="app.updateReservation()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Firebase Config -->
     <script src="resfire.js"></script>
+    <!-- SheetJS for Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Main Application Script -->
     <script>
     class ReservationSystem {
@@ -677,16 +870,20 @@
             document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
             document.getElementById('reservationForm').addEventListener('submit', (e) => this.saveReservation(e));
             document.getElementById('overviewDateFilter').addEventListener('change', () => this.loadOverviewData());
-            document.getElementById('generateReportBtn').addEventListener('click', () => this.generateReport());
             
-            // Filter events for check-in
-            ['checkinDateFilter', 'checkinFlightFilter', 'checkinStatusFilter'].forEach(id => {
-                document.getElementById(id).addEventListener('change', () => this.loadCheckinData());
+            // Report buttons
+            document.getElementById('generatePdfReportBtn').addEventListener('click', () => this.generatePdfReport());
+            document.getElementById('generateExcelReportBtn').addEventListener('click', () => this.generateExcelReport());
+            
+            // Filter events
+            ['checkinDateFilter', 'checkinFlightFilter', 'checkinCustomerFilter', 'checkinStatusFilter'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.addEventListener('change', () => this.loadCheckinData());
             });
             
-            // Filter events for check-out
-            ['checkoutDateFilter', 'checkoutFlightFilter', 'checkoutStatusFilter'].forEach(id => {
-                document.getElementById(id).addEventListener('change', () => this.loadCheckoutData());
+            ['checkoutDateFilter', 'checkoutFlightFilter', 'checkoutCustomerFilter', 'checkoutStatusFilter'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.addEventListener('change', () => this.loadCheckoutData());
             });
             
             // Tab change events
@@ -771,6 +968,7 @@
                 direction: document.getElementById('direction').value,
                 guestName: document.getElementById('guestName').value,
                 nationality: document.getElementById('nationality').value,
+                remarks: document.getElementById('remarks').value,
                 isFOC: document.getElementById('isFOC').checked,
                 status: document.getElementById('isFOC').checked ? 'foc-reserved' : 'reserved',
                 createdAt: new Date().toISOString(),
@@ -790,6 +988,81 @@
             } catch (error) {
                 console.error('Error saving reservation:', error);
                 alert('Error saving reservation');
+            }
+        }
+
+        // ========== EDIT RESERVATION ==========
+        async openEditModal(reservationId) {
+            try {
+                const doc = await this.db.collection('reservations').doc(reservationId).get();
+                if (!doc.exists) {
+                    alert('Reservation not found!');
+                    return;
+                }
+                
+                const reservation = doc.data();
+                
+                // Populate form
+                document.getElementById('editReservationId').value = reservationId;
+                document.getElementById('editCustomer').value = reservation.customer || '';
+                document.getElementById('editReservationDate').value = reservation.reservationDate || '';
+                document.getElementById('editFlightHotel').value = reservation.flightHotel || '';
+                document.getElementById('editSta').value = reservation.sta || '';
+                document.getElementById('editDirection').value = reservation.direction || 'Arrival';
+                document.getElementById('editGuestName').value = reservation.guestName || '';
+                document.getElementById('editNationality').value = reservation.nationality || '';
+                document.getElementById('editStatus').value = reservation.status || 'reserved';
+                document.getElementById('editIsFOC').checked = reservation.isFOC || false;
+                document.getElementById('editRemarks').value = reservation.remarks || '';
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('editReservationModal'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error loading reservation for edit:', error);
+                alert('Error loading reservation details.');
+            }
+        }
+
+        async updateReservation() {
+            const reservationId = document.getElementById('editReservationId').value;
+            const isFOC = document.getElementById('editIsFOC').checked;
+            
+            const updatedData = {
+                customer: document.getElementById('editCustomer').value,
+                reservationDate: document.getElementById('editReservationDate').value,
+                flightHotel: document.getElementById('editFlightHotel').value,
+                sta: document.getElementById('editSta').value,
+                direction: document.getElementById('editDirection').value,
+                guestName: document.getElementById('editGuestName').value,
+                nationality: document.getElementById('editNationality').value,
+                status: document.getElementById('editStatus').value,
+                isFOC: isFOC,
+                remarks: document.getElementById('editRemarks').value,
+                updatedAt: new Date().toISOString(),
+                updatedBy: this.currentUser.username
+            };
+            
+            try {
+                await this.db.collection('reservations').doc(reservationId).update(updatedData);
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editReservationModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                alert('Reservation updated successfully!');
+                
+                // Refresh all data
+                this.loadCheckinData();
+                this.loadCheckoutData();
+                this.loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error updating reservation:', error);
+                alert('Error updating reservation. Please try again.');
             }
         }
 
@@ -816,7 +1089,6 @@
                 this.selectedCheckinIds.add(reservationId);
             } else {
                 this.selectedCheckinIds.delete(reservationId);
-                // Uncheck "Select All" if individual checkbox is unchecked
                 document.getElementById('selectAllCheckin').checked = false;
             }
             this.updateCheckinBulkActions();
@@ -882,7 +1154,6 @@
 
             alert(`Successfully checked in ${successCount} guest(s).${errorCount > 0 ? ` ${errorCount} failed.` : ''}`);
             
-            // Clear selections and refresh
             this.clearCheckinSelections();
             this.loadCheckinData();
             this.loadCheckoutData();
@@ -939,7 +1210,6 @@
                 this.selectedCheckoutIds.add(reservationId);
             } else {
                 this.selectedCheckoutIds.delete(reservationId);
-                // Uncheck "Select All" if individual checkbox is unchecked
                 document.getElementById('selectAllCheckout').checked = false;
             }
             this.updateCheckoutBulkActions();
@@ -1005,7 +1275,6 @@
 
             alert(`Successfully checked out ${successCount} guest(s).${errorCount > 0 ? ` ${errorCount} failed.` : ''}`);
             
-            // Clear selections and refresh
             this.clearCheckoutSelections();
             this.loadCheckoutData();
             this.loadOverviewData();
@@ -1044,6 +1313,7 @@
             
             const date = document.getElementById('checkinDateFilter').value;
             const flightFilter = document.getElementById('checkinFlightFilter').value.toLowerCase();
+            const customerFilter = document.getElementById('checkinCustomerFilter').value.toLowerCase();
             const statusFilter = document.getElementById('checkinStatusFilter').value;
             
             try {
@@ -1053,6 +1323,8 @@
                 const snapshot = await query.get();
                 tableBody.innerHTML = '';
                 
+                let hasData = false;
+                
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const id = doc.id;
@@ -1060,9 +1332,12 @@
                     // Apply filters
                     if (statusFilter && data.status !== statusFilter) return;
                     if (flightFilter && !data.flightHotel.toLowerCase().includes(flightFilter)) return;
+                    if (customerFilter && !data.customer.toLowerCase().includes(customerFilter)) return;
                     
                     // Only show reserved guests
                     if (!['reserved', 'foc-reserved'].includes(data.status)) return;
+                    
+                    hasData = true;
                     
                     const row = `
                         <tr>
@@ -1079,19 +1354,28 @@
                                 ${data.isFOC ? 'FOC Reserved' : 'Reserved'}
                             </span></td>
                             <td>
-                                <button class="btn btn-sm btn-success" onclick="app.checkinSingleGuest('${id}')">
-                                    <i class="fas fa-sign-in-alt"></i>
-                                </button>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success" onclick="app.checkinSingleGuest('${id}')">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-info" onclick="app.openEditModal('${id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
                     tableBody.innerHTML += row;
                 });
                 
+                if (!hasData) {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No reservations found</td></tr>';
+                }
+                
                 this.updateCheckinBulkActions();
             } catch (error) {
                 console.error('Error loading check-in data:', error);
-                tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Error loading data</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading data</td></tr>';
             }
         }
 
@@ -1101,6 +1385,7 @@
             
             const date = document.getElementById('checkoutDateFilter').value;
             const flightFilter = document.getElementById('checkoutFlightFilter').value.toLowerCase();
+            const customerFilter = document.getElementById('checkoutCustomerFilter').value.toLowerCase();
             const statusFilter = document.getElementById('checkoutStatusFilter').value;
             
             try {
@@ -1110,6 +1395,8 @@
                 const snapshot = await query.get();
                 tableBody.innerHTML = '';
                 
+                let hasData = false;
+                
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     const id = doc.id;
@@ -1117,9 +1404,12 @@
                     // Apply filters
                     if (statusFilter && data.status !== statusFilter) return;
                     if (flightFilter && !data.flightHotel.toLowerCase().includes(flightFilter)) return;
+                    if (customerFilter && !data.customer.toLowerCase().includes(customerFilter)) return;
                     
                     // Only show checked-in guests
                     if (!['checked-in', 'foc-checkedin'].includes(data.status)) return;
+                    
+                    hasData = true;
                     
                     // Calculate duration
                     let duration = 'N/A';
@@ -1146,19 +1436,28 @@
                                 ${data.isFOC ? 'FOC Checked-In' : 'Checked-In'}
                             </span></td>
                             <td>
-                                <button class="btn btn-sm btn-warning" onclick="app.checkoutSingleGuest('${id}')">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                </button>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-warning" onclick="app.checkoutSingleGuest('${id}')">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-info" onclick="app.openEditModal('${id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
                     tableBody.innerHTML += row;
                 });
                 
+                if (!hasData) {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No guests found</td></tr>';
+                }
+                
                 this.updateCheckoutBulkActions();
             } catch (error) {
                 console.error('Error loading check-out data:', error);
-                tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Error loading data</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error loading data</td></tr>';
             }
         }
 
@@ -1171,6 +1470,7 @@
                 let reserved = 0, checkedIn = 0, checkedOut = 0, foc = 0, noShow = 0, activeNow = 0;
                 let arrivalReserved = 0, arrivalCheckedIn = 0, arrivalCheckedOut = 0;
                 let departureReserved = 0, departureCheckedIn = 0, departureCheckedOut = 0;
+                let recentActivity = [];
                 
                 snapshot.forEach(doc => {
                     const data = doc.data();
@@ -1196,6 +1496,29 @@
                         if (data.status.includes('reserved')) departureReserved++;
                         if (data.status.includes('checked-in')) departureCheckedIn++;
                         if (data.status.includes('checked-out')) departureCheckedOut++;
+                    }
+                    
+                    // Recent activity - check for latest timestamps
+                    if (data.checkinDateTime) {
+                        recentActivity.push({
+                            time: data.checkinDateTime,
+                            guest: data.guestName,
+                            action: 'Check-In'
+                        });
+                    }
+                    if (data.checkoutDateTime) {
+                        recentActivity.push({
+                            time: data.checkoutDateTime,
+                            guest: data.guestName,
+                            action: 'Check-Out'
+                        });
+                    }
+                    if (data.createdAt && !data.checkinDateTime && !data.checkoutDateTime) {
+                        recentActivity.push({
+                            time: data.createdAt,
+                            guest: data.guestName,
+                            action: 'Reservation'
+                        });
                     }
                 });
                 
@@ -1223,14 +1546,248 @@
                     </tr>
                 `;
                 
+                // Sort and display recent activity
+                recentActivity.sort((a, b) => new Date(b.time) - new Date(a.time));
+                const recentActivityBody = document.getElementById('recentActivity');
+                recentActivityBody.innerHTML = recentActivity.slice(0, 10).map(item => `
+                    <tr>
+                        <td>${new Date(item.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                        <td>${item.guest}</td>
+                        <td><span class="badge ${item.action === 'Check-In' ? 'bg-success' : item.action === 'Check-Out' ? 'bg-warning' : 'bg-info'}">${item.action}</span></td>
+                    </tr>
+                `).join('');
+                
+                if (recentActivity.length === 0) {
+                    recentActivityBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No recent activity</td></tr>';
+                }
+                
             } catch (error) {
                 console.error('Error loading overview data:', error);
             }
         }
 
-        async generateReport() {
-            alert('Report generation would be implemented here');
-            // This would generate PDF reports with arrival/departure breakdown
+        // ========== REPORT GENERATION ==========
+        async generatePdfReport() {
+            const fromDate = document.getElementById('reportFromDate').value;
+            const toDate = document.getElementById('reportToDate').value;
+            const customerFilter = document.getElementById('reportCustomerFilter').value.toLowerCase();
+            const flightFilter = document.getElementById('reportFlightFilter').value.toLowerCase();
+            const reportType = document.getElementById('reportType').value;
+            
+            if (!fromDate || !toDate) {
+                alert('Please select both from and to dates');
+                return;
+            }
+            
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                const reservations = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    
+                    // Check if reservation date is within range
+                    const resDate = data.reservationDate;
+                    if (resDate < fromDate || resDate > toDate) return;
+                    
+                    // Apply customer filter
+                    if (customerFilter && !data.customer.toLowerCase().includes(customerFilter)) return;
+                    
+                    // Apply flight filter
+                    if (flightFilter && !data.flightHotel.toLowerCase().includes(flightFilter)) return;
+                    
+                    // Apply report type filter
+                    if (reportType === 'foc' && !data.isFOC) return;
+                    if (reportType === 'noshow' && !data.status.includes('noshow')) return;
+                    if (reportType === 'arrival' && data.direction !== 'Arrival') return;
+                    if (reportType === 'departure' && data.direction !== 'Departure') return;
+                    
+                    reservations.push({ id, ...data });
+                });
+                
+                if (reservations.length === 0) {
+                    alert('No reservations found for the selected criteria');
+                    return;
+                }
+                
+                // Show preview
+                this.showReportPreview(reservations, fromDate, toDate);
+                
+            } catch (error) {
+                console.error('Error generating report:', error);
+                alert('Error generating report');
+            }
+        }
+
+        showReportPreview(reservations, fromDate, toDate) {
+            const reportType = document.getElementById('reportType').value;
+            let title = 'Guest Report';
+            if (reportType === 'foc') title = 'FOC Guests Report';
+            if (reportType === 'noshow') title = 'No-Show Report';
+            if (reportType === 'arrival') title = 'Arrival Guests Report';
+            if (reportType === 'departure') title = 'Departure Guests Report';
+            
+            // Count by status
+            let arrivalCount = 0, departureCount = 0;
+            reservations.forEach(res => {
+                if (res.direction === 'Arrival') arrivalCount++;
+                if (res.direction === 'Departure') departureCount++;
+            });
+            
+            const previewHtml = `
+                <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+                    <h2 style="text-align: center; color: #000000;">VILU BUSINESS LOUNGE</h2>
+                    <h3 style="text-align: center;">${title}</h3>
+                    <p style="text-align: center;">Period: ${fromDate} to ${toDate}</p>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <h4>Summary</h4>
+                        <p>Total Guests: ${reservations.length}</p>
+                        <p>Arrivals: ${arrivalCount}</p>
+                        <p>Departures: ${departureCount}</p>
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="background: #000000; color: white;">
+                                <th style="padding: 10px; border: 1px solid #ddd;">Guest Name</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Customer</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Flight/Hotel</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Direction</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">STA</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Status</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Check-In</th>
+                                <th style="padding: 10px; border: 1px solid #ddd;">Check-Out</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${reservations.map(res => `
+                                <tr>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${res.guestName}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${res.customer}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${res.flightHotel}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${res.direction}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${res.sta}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${res.status}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${res.checkinTime || '-'}</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">${res.checkoutTime || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div style="margin-top: 40px; text-align: center;">
+                        <p>___________________________</p>
+                        <p>Authorized Signature</p>
+                        <p>Generated by: ${this.currentUser.name}</p>
+                        <p>Date: ${new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title}</title>
+                    <style>
+                        @media print {
+                            @page { margin: 15mm; }
+                            body { font-family: Arial, sans-serif; font-size: 12px; }
+                        }
+                        @media screen {
+                            body { font-family: Arial, sans-serif; padding: 20px; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${previewHtml}
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #000000; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Print Report
+                        </button>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        async generateExcelReport() {
+            const fromDate = document.getElementById('reportFromDate').value;
+            const toDate = document.getElementById('reportToDate').value;
+            const customerFilter = document.getElementById('reportCustomerFilter').value.toLowerCase();
+            const flightFilter = document.getElementById('reportFlightFilter').value.toLowerCase();
+            const reportType = document.getElementById('reportType').value;
+            
+            if (!fromDate || !toDate) {
+                alert('Please select both from and to dates');
+                return;
+            }
+            
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                const reservations = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // Check if reservation date is within range
+                    const resDate = data.reservationDate;
+                    if (resDate < fromDate || resDate > toDate) return;
+                    
+                    // Apply filters
+                    if (customerFilter && !data.customer.toLowerCase().includes(customerFilter)) return;
+                    if (flightFilter && !data.flightHotel.toLowerCase().includes(flightFilter)) return;
+                    if (reportType === 'foc' && !data.isFOC) return;
+                    if (reportType === 'noshow' && !data.status.includes('noshow')) return;
+                    if (reportType === 'arrival' && data.direction !== 'Arrival') return;
+                    if (reportType === 'departure' && data.direction !== 'Departure') return;
+                    
+                    reservations.push(data);
+                });
+                
+                if (reservations.length === 0) {
+                    alert('No reservations found for the selected criteria');
+                    return;
+                }
+                
+                // Prepare data for Excel
+                const excelData = reservations.map(item => ({
+                    'Guest Name': item.guestName,
+                    'Customer': item.customer,
+                    'Flight/Hotel': item.flightHotel,
+                    'Direction': item.direction,
+                    'STA': item.sta,
+                    'Nationality': item.nationality,
+                    'Status': item.status,
+                    'FOC': item.isFOC ? 'Yes' : 'No',
+                    'Reservation Date': item.reservationDate,
+                    'Check-In Time': item.checkinTime || '',
+                    'Check-Out Time': item.checkoutTime || '',
+                    'Remarks': item.remarks || ''
+                }));
+                
+                // Create worksheet
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Report');
+                
+                // Generate filename
+                const dateStr = new Date().toISOString().split('T')[0];
+                const filename = `Vilu_Lounge_Report_${dateStr}.xlsx`;
+                
+                // Download file
+                XLSX.writeFile(wb, filename);
+                
+            } catch (error) {
+                console.error('Error generating Excel report:', error);
+                alert('Error generating Excel report');
+            }
         }
     }
 
