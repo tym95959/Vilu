@@ -1048,6 +1048,19 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-2">
+                <div class="card stats-card" style="background: linear-gradient(135deg, #38b2ac 0%, #319795 100%);">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="card-subtitle mb-2 opacity-90">Active Now</h6>
+                                <h3 class="card-title mb-0" id="statActive">0</h3>
+                                <small>Today</small>
+                            </div>
+                            <i class="fas fa-user-check stats-icon"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -4424,12 +4437,16 @@
                 let foc = 0;
                 let noshow = 0;
                 let cancelled = 0;
+                let active = 0; // Active = currently checked in but not checked out
                 
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     
                     if (data.status.includes('reserved') && !data.status.includes('foc')) reserved++;
-                    if (data.status.includes('checked-in') && !data.status.includes('foc')) checkedin++;
+                    if (data.status.includes('checked-in') && !data.status.includes('foc')) {
+                        checkedin++;
+                        active++; // Add to active count
+                    }
                     if (data.status.includes('checked-out') && !data.status.includes('foc')) checkedout++;
                     if (data.isFOC) foc++;
                     if (data.status.includes('noshow')) noshow++;
@@ -4437,16 +4454,29 @@
                 });
                 
                 // Update stats display
-                document.getElementById('statReservations').textContent = reserved;
-                document.getElementById('statCheckins').textContent = checkedin;
-                document.getElementById('statCheckouts').textContent = checkedout;
-                document.getElementById('statFOC').textContent = foc;
-                document.getElementById('statNoshow').textContent = noshow;
-                document.getElementById('statCancelled').textContent = cancelled;
-                document.getElementById('statActive').textContent = checkedin; // Active = currently checked in
+                const statElements = {
+                    'statReservations': reserved,
+                    'statCheckins': checkedin,
+                    'statCheckouts': checkedout,
+                    'statFOC': foc,
+                    'statNoshow': noshow,
+                    'statCancelled': cancelled,
+                    'statActive': active // Add active count
+                };
+                
+                // Update each element only if it exists
+                for (const [elementId, value] of Object.entries(statElements)) {
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        element.textContent = value;
+                    }
+                }
                 
                 // Show quick stats section
-                document.getElementById('quickStats').classList.remove('d-none');
+                const quickStats = document.getElementById('quickStats');
+                if (quickStats) {
+                    quickStats.classList.remove('d-none');
+                }
                 
             } catch (error) {
                 console.error('Error updating stats:', error);
