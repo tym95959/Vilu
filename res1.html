@@ -2631,14 +2631,40 @@
             
             for (const reservationId of this.selectedCheckoutReservations) {
                 try {
-                    await this.db.collection('reservations').doc(reservationId).update({
-                        status: 'checked-out',
-                        checkoutTime: checkoutTime,
-                        checkoutDateTime: now.toISOString(),
-                        checkoutBy: this.currentUser.username,
-                        checkoutDate: new Date().toISOString().split('T')[0],
-                        actualCheckoutTime: currentTime
-                    });
+                    // Get the current reservation data
+                    const doc = await this.db.collection('reservations').doc(reservationId).get();
+                    const reservation = doc.data();
+                    
+                    if (reservation.status === 'rechecked-in') {
+                        // Handle rechecked-in guest checkout
+                        const updatedRecheckinData = {
+                            ...reservation.recheckinData,
+                            recheckoutTime: currentTime,
+                            recheckoutDateTime: now.toISOString(),
+                            recheckoutBy: this.currentUser.username
+                        };
+                        
+                        await this.db.collection('reservations').doc(reservationId).update({
+                            status: 'checked-out',
+                            recheckinData: updatedRecheckinData,
+                            checkoutTime: checkoutTime,
+                            checkoutDateTime: now.toISOString(),
+                            checkoutBy: this.currentUser.username,
+                            actualCheckoutTime: currentTime,
+                            updatedAt: now.toISOString(),
+                            updatedBy: this.currentUser.username
+                        });
+                    } else {
+                        // Handle regular checked-in guest
+                        await this.db.collection('reservations').doc(reservationId).update({
+                            status: 'checked-out',
+                            checkoutTime: checkoutTime,
+                            checkoutDateTime: now.toISOString(),
+                            checkoutBy: this.currentUser.username,
+                            checkoutDate: new Date().toISOString().split('T')[0],
+                            actualCheckoutTime: currentTime
+                        });
+                    }
                     successCount++;
                 } catch (error) {
                     console.error(`Error checking out reservation ${reservationId}:`, error);
@@ -2653,34 +2679,6 @@
             this.loadCheckoutData();
             this.loadOverviewData();
         }
-
-        async loadFlightOptionsForCheckin() {
-            try {
-                const snapshot = await this.db.collection('reservations').get();
-                
-                const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
-                const select = document.getElementById('checkinFlightFilter');
-                if (!select) return;
-                
-                const currentValue = select.value;
-                select.innerHTML = '<option value="">All Flights/Hotels</option>';
-                flights.forEach(flight => {
-                    if (flight) {
-                        const option = document.createElement('option');
-                        option.value = flight;
-                        option.textContent = flight;
-                        select.appendChild(option);
-                    }
-                });
-                
-                if (flights.includes(currentValue)) {
-                    select.value = currentValue;
-                }
-            } catch (error) {
-                console.error('Error loading flight options for check-in:', error);
-            }
-        }
-
         async loadCustomerOptionsForCheckin() {
             try {
                 const snapshot = await this.db.collection('reservations').get();
@@ -3361,12 +3359,8 @@
             const focFilter = focSelect ? focSelect.value : '';
             
             try {
-                let query = this.db.collection('reservations');
-                
-                // Apply status filter - show checked-in guests only
-                query = query.where('status', '==', 'checked-in');
-                
-                const snapshot = await query.get();
+                // First, get all reservations
+                const snapshot = await this.db.collection('reservations').get();
                 tableBody.innerHTML = '';
                 
                 if (snapshot.empty) {
@@ -3386,8 +3380,16 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     
+                    // Show only checked-in AND rechecked-in guests
+                    if (data.status !== 'checked-in' && data.status !== 'rechecked-in') return;
+                    
+                    // Apply date filter
+                    if (date) {
+                        const checkinDate = data.checkinDate;
+                        if (checkinDate !== date) return;
+                    }
+                    
                     // Apply additional filters
-                    if (date && data.checkinDate !== date) return;
                     if (flightFilter && data.flightHotel !== flightFilter) return;
                     if (customerFilter && data.customer !== customerFilter) return;
                     if (focFilter) {
@@ -3400,14 +3402,38 @@
                     
                     const focBadge = data.foc ? '<span class="foc-badge">FOC</span>' : '';
                     
+                    // Determine status display
+                    let statusDisplay = '';
+                    if (data.status === 'rechecked-in') {
+                        statusDisplay = '<span class="status-badge status-recheckedin">Re-Checked-In</span>';
+                    } else {
+                        statusDisplay = '<span class="status-badge status-checkedin">Checked-In</span>';
+                    }
+                    
                     const isSelected = this.selectedCheckoutReservations.has(doc.id);
                     
+                    // Determine action button based on status
+                    let actionButton = '';
+                    if (data.status === 'rechecked-in') {
+                        actionButton = `
+                            <button class="btn btn-sm btn-warning" onclick="app.openRecheckoutModal('${doc.id}')">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        `;
+                    } else {
+                        actionButton = `
+                            <button class="btn btn-sm btn-warning" onclick="app.checkoutGuest('${doc.id}')">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        `;
+                    }
+                    
                     const row = `
-                        <tr>
+                        <tr class="${data.status === 'rechecked-in' ? 'recheckin-row' : ''}">
                             <td>
                                 <input type="checkbox" class="bulk-checkbox" value="${doc.id}" 
-                                       ${isSelected ? 'checked' : ''}
-                                       onchange="app.toggleCheckoutSelection('${doc.id}')">
+                                    ${isSelected ? 'checked' : ''}
+                                    onchange="app.toggleCheckoutSelection('${doc.id}')">
                             </td>
                             <td>${data.guestName}</td>
                             <td>${data.customer}</td>
@@ -3416,12 +3442,10 @@
                             <td>${data.direction}</td>
                             <td>${data.checkinTime || 'N/A'}</td>
                             <td>${focBadge}</td>
-                            <td><span class="status-badge status-checkedin">Checked-In</span></td>
+                            <td>${statusDisplay}</td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn btn-sm btn-warning" onclick="app.checkoutGuest('${doc.id}')">
-                                        <i class="fas fa-sign-out-alt"></i>
-                                    </button>
+                                    ${actionButton}
                                     <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -3469,14 +3493,38 @@
             });
             
             try {
-                await this.db.collection('reservations').doc(reservationId).update({
-                    status: 'checked-out',
-                    checkoutTime: checkoutTime,
-                    checkoutDateTime: now.toISOString(),
-                    checkoutBy: this.currentUser.username,
-                    checkoutDate: new Date().toISOString().split('T')[0],
-                    actualCheckoutTime: currentTime
-                });
+                // Get the current reservation data
+                const doc = await this.db.collection('reservations').doc(reservationId).get();
+                const reservation = doc.data();
+                
+                if (reservation.status === 'rechecked-in') {
+                    // Handle rechecked-in guest checkout
+                    const updatedRecheckinData = {
+                        ...reservation.recheckinData,
+                        recheckoutTime: currentTime,
+                        recheckoutDateTime: now.toISOString(),
+                        recheckoutBy: this.currentUser.username
+                    };
+                    
+                    await this.db.collection('reservations').doc(reservationId).update({
+                        status: 'checked-out',
+                        recheckinData: updatedRecheckinData,
+                        checkoutTime: checkoutTime,
+                        checkoutDateTime: now.toISOString(),
+                        checkoutBy: this.currentUser.username,
+                        actualCheckoutTime: currentTime
+                    });
+                } else {
+                    // Handle regular checked-in guest
+                    await this.db.collection('reservations').doc(reservationId).update({
+                        status: 'checked-out',
+                        checkoutTime: checkoutTime,
+                        checkoutDateTime: now.toISOString(),
+                        checkoutBy: this.currentUser.username,
+                        checkoutDate: new Date().toISOString().split('T')[0],
+                        actualCheckoutTime: currentTime
+                    });
+                }
                 
                 alert('Guest checked out successfully!');
                 
@@ -3793,7 +3841,7 @@
                 let todayCheckIns = 0;
                 let todayCheckOuts = 0;
                 let todayActive = 0;
-                let todayFOC = 0;
+                //let todayFOC = 0;
                 let todayNoShows = 0;
                 let todayRecheckins = 0;
                 
@@ -3858,9 +3906,7 @@
                         todayActive++;
                     }
                     
-                    if (data.foc && reservationDate === today) {
-                        todayFOC++;
-                    }
+                    
                     
                     if (data.status === 'no-show' && reservationDate === today) {
                         todayNoShows++;
@@ -3946,7 +3992,7 @@
                 document.getElementById('todayCheckIns').textContent = todayCheckIns;
                 document.getElementById('todayCheckOuts').textContent = todayCheckOuts;
                 document.getElementById('todayActive').textContent = todayActive;
-                document.getElementById('todayFOC').textContent = todayFOC;
+                //document.getElementById('todayFOC').textContent = todayFOC;
                 document.getElementById('todayRecheckins').textContent = todayRecheckins;
                 document.getElementById('todayNoShows').textContent = todayNoShows;
                 
