@@ -1446,6 +1446,55 @@
             </div>
         </div>
     </div>
+    <!-- Reopen Modal for No-Show Guests -->
+<div class="modal fade" id="reopenModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reopen Reservation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reopenForm">
+                    <input type="hidden" id="reopenReservationId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Guest Name</label>
+                            <input type="text" id="reopenGuestName" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Customer</label>
+                            <input type="text" id="reopenCustomer" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Flight/Hotel</label>
+                            <input type="text" id="reopenFlightHotel" class="form-control" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">New STA/ETA</label>
+                            <input type="time" id="reopenNewSta" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">New Status</label>
+                            <select id="reopenStatus" class="form-select" required>
+                                <option value="reserved">Reserved</option>
+                                <option value="checked-in">Check-In Now</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Reopen Remarks</label>
+                            <textarea id="reopenRemarks" class="form-control" rows="2" placeholder="Reason for reopening..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="app.saveReopenReservation()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -2466,7 +2515,7 @@
         
         const reservation = doc.data();
         
-        // Populate the reopen modal
+        // Populate the reopen modal - FIXED: Using correct element IDs
         document.getElementById('reopenReservationId').value = reservationId;
         document.getElementById('reopenGuestName').value = reservation.guestName || '';
         document.getElementById('reopenCustomer').value = reservation.customer || '';
@@ -2486,6 +2535,68 @@
         alert('Error loading reservation details.');
     }
 }
+
+    async saveReopenReservation() {
+        const reservationId = document.getElementById('reopenReservationId').value;
+        const newStatus = document.getElementById('reopenStatus').value;
+        const newSta = document.getElementById('reopenNewSta').value;
+        const remarks = document.getElementById('reopenRemarks').value;
+        
+        if (!newSta) {
+            alert('Please enter new STA/ETA time.');
+            return;
+        }
+        
+        try {
+            const updateData = {
+                status: newStatus,
+                sta: newSta,
+                noShowReason: null,
+                noShowMarkedAt: null,
+                noShowMarkedBy: null,
+                updatedAt: new Date().toISOString(),
+                updatedBy: this.currentUser.username
+            };
+            
+            if (remarks) {
+                updateData.reopenRemarks = remarks;
+            }
+            
+            if (newStatus === 'checked-in') {
+                const now = new Date();
+                const currentTime = now.toTimeString().slice(0, 5);
+                const checkinTime = now.toLocaleTimeString('en-US', { 
+                    hour12: true, 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                updateData.actualCheckinTime = currentTime;
+                updateData.checkinTime = checkinTime;
+                updateData.checkinDateTime = now.toISOString();
+                updateData.checkinBy = this.currentUser.username;
+                updateData.checkinDate = new Date().toISOString().split('T')[0];
+            }
+            
+            await this.db.collection('reservations').doc(reservationId).update(updateData);
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('reopenModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            alert('Reservation reopened successfully!');
+            
+            // Refresh all data
+            this.loadCheckinData();
+            this.loadOverviewData();
+            
+        } catch (error) {
+            console.error('Error reopening reservation:', error);
+            alert('Error reopening reservation. Please try again.');
+        }
+    }
 
 async saveReopenReservation() {
     const reservationId = document.getElementById('reopenReservationId').value;
