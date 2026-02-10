@@ -144,12 +144,6 @@
             border: 1px solid #fc8181;
         }
         
-        .status-recheckedin { 
-            background-color: #e9d8fd; 
-            color: #553c9a;
-            border: 1px solid #d6bcfa;
-        }
-        
         /* Filter section */
         .filter-section {
             background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
@@ -604,24 +598,6 @@
         .noshow-row:hover {
             background-color: #fed7d7 !important;
         }
-        
-        /* Re-checkin highlight */
-        .recheckin-row {
-            background-color: #f0fff4 !important;
-        }
-        
-        .recheckin-row:hover {
-            background-color: #c6f6d5 !important;
-        }
-        
-        .recheckin-badge {
-            background-color: #e9d8fd;
-            color: #553c9a;
-            font-size: 0.7em;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 5px;
-        }
     </style>
 </head>
 <body>
@@ -717,11 +693,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#recheckinTab">
-                        <i class="fas fa-redo me-2"></i> Re-Check-In
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link active" data-bs-toggle="tab" href="#reportTab">
                         <i class="fas fa-file-alt me-2"></i> Reports
                     </a>
@@ -810,15 +781,15 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card dashboard-card summary-card" style="border-left-color: var(--info-color);">
+                            <div class="card dashboard-card summary-card" style="border-left-color: var(--danger-color);">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="me-3">
-                                            <i class="fas fa-redo summary-icon" style="color: var(--info-color);"></i>
+                                            <i class="fas fa-user-times summary-icon" style="color: var(--danger-color);"></i>
                                         </div>
                                         <div>
-                                            <div class="summary-value" id="overviewRecheckins">0</div>
-                                            <div class="summary-label">Re-Check-Ins</div>
+                                            <div class="summary-value" id="overviewNoShows">0</div>
+                                            <div class="summary-label">No-Shows</div>
                                         </div>
                                     </div>
                                 </div>
@@ -856,8 +827,8 @@
                             </div>
                             <div class="col-md-2">
                                 <div class="today-stat">
-                                    <div class="today-stat-value" id="todayRecheckins">0</div>
-                                    <div class="today-stat-label">Re-Check-Ins</div>
+                                    <div class="today-stat-value" id="todayFOC">0</div>
+                                    <div class="today-stat-label">FOC</div>
                                 </div>
                             </div>
                             <div class="col-md-2">
@@ -1247,80 +1218,6 @@
                     </div>
                 </div>
 
-                <!-- Re-Check-In Tab -->
-                <div class="tab-pane fade" id="recheckinTab">
-                    <div class="card dashboard-card">
-                        <div class="card-header card-header-primary">
-                            <h5 class="mb-0"><i class="fas fa-redo me-2"></i> Re-Check-In Guests</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="filter-section">
-                                <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold">Check-Out Date</label>
-                                        <input type="date" id="recheckinDateFilter" class="form-control">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold">Flight/Hotel</label>
-                                        <select id="recheckinFlightFilter" class="form-select">
-                                            <option value="">All Flights/Hotels</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold">Customer</label>
-                                        <select id="recheckinCustomerFilter" class="form-select">
-                                            <option value="">All Customers</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label fw-bold">FOC Status</label>
-                                        <select id="recheckinFOCFilter" class="form-select">
-                                            <option value="">All</option>
-                                            <option value="true">FOC Only</option>
-                                            <option value="false">Non-FOC Only</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="d-flex gap-2">
-                                            <button class="btn btn-primary" onclick="app.loadRecheckinData()">
-                                                <i class="fas fa-sync me-2"></i> Refresh
-                                            </button>
-                                            <button class="btn btn-outline-secondary" onclick="app.clearRecheckinFilters()">
-                                                <i class="fas fa-filter-circle-xmark me-2"></i> Clear Filters
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Guest Name</th>
-                                            <th>Customer</th>
-                                            <th>Flight/Hotel</th>
-                                            <th>STA/ETA</th>
-                                            <th>Direction</th>
-                                            <th>First Check-In</th>
-                                            <th>First Check-Out</th>
-                                            <th>FOC</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="recheckinTable">
-                                        <tr>
-                                            <td colspan="9" class="text-center text-muted py-4">
-                                                <div class="spinner"></div>
-                                                <p class="mt-2">Loading data...</p>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Report Tab -->
                 <div class="tab-pane fade show active" id="reportTab">
                     <div class="card dashboard-card">
@@ -1365,7 +1262,6 @@
                                             <option value="reserved">Reserved</option>
                                             <option value="checked-in">Checked-In</option>
                                             <option value="checked-out">Checked-Out</option>
-                                            <option value="rechecked-in">Re-Checked-In</option>
                                             <option value="no-show">No-Show</option>
                                         </select>
                                     </div>
@@ -1385,9 +1281,6 @@
                                             </button>
                                             <button id="generateFOCReportBtn" class="btn btn-info">
                                                 <i class="fas fa-user-tag me-2"></i> FOC Report
-                                            </button>
-                                            <button id="generateRecheckinReportBtn" class="btn btn-secondary">
-                                                <i class="fas fa-redo me-2"></i> Re-Check-In Report
                                             </button>
                                             <button class="btn btn-outline-secondary" onclick="app.clearReportFilters()">
                                                 <i class="fas fa-filter-circle-xmark me-2"></i> Clear Filters
@@ -1478,7 +1371,6 @@
                                     <option value="reserved">Reserved</option>
                                     <option value="checked-in">Checked-In</option>
                                     <option value="checked-out">Checked-Out</option>
-                                    <option value="rechecked-in">Re-Checked-In</option>
                                     <option value="no-show">No-Show</option>
                                 </select>
                             </div>
@@ -1550,162 +1442,6 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" onclick="app.saveQuickCheckin()">Check-In</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Reopen Modal for No-Show Guests -->
-    <div class="modal fade" id="reopenModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Reopen Reservation</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="reopenForm">
-                        <input type="hidden" id="reopenReservationId">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Guest Name</label>
-                                <input type="text" id="reopenGuestName" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Customer</label>
-                                <input type="text" id="reopenCustomer" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Flight/Hotel</label>
-                                <input type="text" id="reopenFlightHotel" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">New STA/ETA</label>
-                                <input type="time" id="reopenNewSta" class="form-control" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">New Status</label>
-                                <select id="reopenStatus" class="form-select" required>
-                                    <option value="reserved">Reserved</option>
-                                    <option value="checked-in">Check-In Now</option>
-                                </select>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Reopen Remarks</label>
-                                <textarea id="reopenRemarks" class="form-control" rows="2" placeholder="Reason for reopening..."></textarea>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="app.saveReopenReservation()">Save Changes</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Re-Check-In Modal -->
-    <div class="modal fade" id="recheckinModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Re-Check-In Guest</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="recheckinForm">
-                        <input type="hidden" id="recheckinReservationId">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Guest Name</label>
-                                <input type="text" id="recheckinGuestName" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Customer</label>
-                                <input type="text" id="recheckinCustomer" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Flight/Hotel</label>
-                                <input type="text" id="recheckinFlightHotel" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Previous Check-Out Time</label>
-                                <input type="text" id="recheckinPreviousCheckout" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Re-Check-In Time</label>
-                                <input type="time" id="recheckinTime" class="form-control" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Reason for Re-Check-In</label>
-                                <input type="text" id="recheckinReason" class="form-control" required placeholder="e.g., Flight delay, forgot item, etc.">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">New STA/ETA (if applicable)</label>
-                                <input type="time" id="recheckinNewSta" class="form-control">
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Additional Remarks</label>
-                                <textarea id="recheckinRemarks" class="form-control" rows="2" placeholder="Any additional notes..."></textarea>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="app.saveRecheckin()">Re-Check-In</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Check-Out for Re-Checked-In Guests Modal -->
-    <div class="modal fade" id="recheckoutModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Check-Out (Re-Checked-In Guest)</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="recheckoutForm">
-                        <input type="hidden" id="recheckoutReservationId">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Guest Name</label>
-                                <input type="text" id="recheckoutGuestName" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Customer</label>
-                                <input type="text" id="recheckoutCustomer" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Flight/Hotel</label>
-                                <input type="text" id="recheckoutFlightHotel" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Re-Check-In Time</label>
-                                <input type="text" id="recheckoutRecheckinTime" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Re-Check-In Reason</label>
-                                <input type="text" id="recheckoutRecheckinReason" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">New Check-Out Time</label>
-                                <input type="time" id="recheckoutNewTime" class="form-control" required>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label fw-bold">Check-Out Remarks</label>
-                                <textarea id="recheckoutRemarks" class="form-control" rows="2" placeholder="Any notes for this check-out..."></textarea>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-warning" onclick="app.saveRecheckout()">Check-Out</button>
                 </div>
             </div>
         </div>
@@ -1861,27 +1597,6 @@
                 checkoutFOCFilter.addEventListener('change', () => this.loadCheckoutData());
             }
             
-            // Re-checkin filters
-            const recheckinDateFilter = document.getElementById('recheckinDateFilter');
-            if (recheckinDateFilter) {
-                recheckinDateFilter.addEventListener('change', () => this.loadRecheckinData());
-            }
-            
-            const recheckinFlightFilter = document.getElementById('recheckinFlightFilter');
-            if (recheckinFlightFilter) {
-                recheckinFlightFilter.addEventListener('change', () => this.loadRecheckinData());
-            }
-            
-            const recheckinCustomerFilter = document.getElementById('recheckinCustomerFilter');
-            if (recheckinCustomerFilter) {
-                recheckinCustomerFilter.addEventListener('change', () => this.loadRecheckinData());
-            }
-            
-            const recheckinFOCFilter = document.getElementById('recheckinFOCFilter');
-            if (recheckinFOCFilter) {
-                recheckinFOCFilter.addEventListener('change', () => this.loadRecheckinData());
-            }
-            
             // Report buttons
             const generateReportBtn = document.getElementById('generateReportBtn');
             if (generateReportBtn) {
@@ -1906,11 +1621,6 @@
             const generateFOCReportBtn = document.getElementById('generateFOCReportBtn');
             if (generateFOCReportBtn) {
                 generateFOCReportBtn.addEventListener('click', () => this.generateFOCReport());
-            }
-            
-            const generateRecheckinReportBtn = document.getElementById('generateRecheckinReportBtn');
-            if (generateRecheckinReportBtn) {
-                generateRecheckinReportBtn.addEventListener('click', () => this.generateRecheckinReport());
             }
             
             // Overview filters
@@ -1940,10 +1650,6 @@
                         this.loadCheckoutData();
                         this.loadFlightOptionsForCheckout();
                         this.loadCustomerOptionsForCheckout();
-                    } else if (target === '#recheckinTab') {
-                        this.loadRecheckinData();
-                        this.loadFlightOptionsForRecheckin();
-                        this.loadCustomerOptionsForRecheckin();
                     } else if (target === '#reportTab') {
                         this.loadReportOptions();
                     }
@@ -2026,7 +1732,6 @@
                 'reservationDate',
                 'checkinDateFilter',
                 'checkoutDateFilter',
-                'recheckinDateFilter',
                 'reportFromDate',
                 'reportToDate',
                 'overviewStartDate',
@@ -2041,13 +1746,10 @@
             // Load initial data
             this.loadCheckinData();
             this.loadCheckoutData();
-            this.loadRecheckinData();
             this.loadFlightOptionsForCheckin();
             this.loadFlightOptionsForCheckout();
-            this.loadFlightOptionsForRecheckin();
             this.loadCustomerOptionsForCheckin();
             this.loadCustomerOptionsForCheckout();
-            this.loadCustomerOptionsForRecheckin();
             this.loadReportOptions();
             
             // Set Report as active tab
@@ -2184,8 +1886,7 @@
                 reservationDate: reservationDate,
                 actualCheckinTime: null,
                 checkinRemarks: null,
-                noShowReason: null,
-                recheckinData: null // Initialize re-checkin data
+                noShowReason: null
             };
             
             try {
@@ -2204,13 +1905,10 @@
                 // Refresh all data
                 this.loadCheckinData();
                 this.loadCheckoutData();
-                this.loadRecheckinData();
                 this.loadFlightOptionsForCheckin();
                 this.loadFlightOptionsForCheckout();
-                this.loadFlightOptionsForRecheckin();
                 this.loadCustomerOptionsForCheckin();
                 this.loadCustomerOptionsForCheckout();
-                this.loadCustomerOptionsForRecheckin();
                 this.loadReportOptions();
                 this.loadOverviewData();
                 
@@ -2290,13 +1988,10 @@
                 // Refresh all data
                 this.loadCheckinData();
                 this.loadCheckoutData();
-                this.loadRecheckinData();
                 this.loadFlightOptionsForCheckin();
                 this.loadFlightOptionsForCheckout();
-                this.loadFlightOptionsForRecheckin();
                 this.loadCustomerOptionsForCheckin();
                 this.loadCustomerOptionsForCheckout();
-                this.loadCustomerOptionsForRecheckin();
                 this.loadReportOptions();
                 this.loadOverviewData();
                 
@@ -2631,40 +2326,14 @@
             
             for (const reservationId of this.selectedCheckoutReservations) {
                 try {
-                    // Get the current reservation data
-                    const doc = await this.db.collection('reservations').doc(reservationId).get();
-                    const reservation = doc.data();
-                    
-                    if (reservation.status === 'rechecked-in') {
-                        // Handle rechecked-in guest checkout
-                        const updatedRecheckinData = {
-                            ...reservation.recheckinData,
-                            recheckoutTime: currentTime,
-                            recheckoutDateTime: now.toISOString(),
-                            recheckoutBy: this.currentUser.username
-                        };
-                        
-                        await this.db.collection('reservations').doc(reservationId).update({
-                            status: 'checked-out',
-                            recheckinData: updatedRecheckinData,
-                            checkoutTime: checkoutTime,
-                            checkoutDateTime: now.toISOString(),
-                            checkoutBy: this.currentUser.username,
-                            actualCheckoutTime: currentTime,
-                            updatedAt: now.toISOString(),
-                            updatedBy: this.currentUser.username
-                        });
-                    } else {
-                        // Handle regular checked-in guest
-                        await this.db.collection('reservations').doc(reservationId).update({
-                            status: 'checked-out',
-                            checkoutTime: checkoutTime,
-                            checkoutDateTime: now.toISOString(),
-                            checkoutBy: this.currentUser.username,
-                            checkoutDate: new Date().toISOString().split('T')[0],
-                            actualCheckoutTime: currentTime
-                        });
-                    }
+                    await this.db.collection('reservations').doc(reservationId).update({
+                        status: 'checked-out',
+                        checkoutTime: checkoutTime,
+                        checkoutDateTime: now.toISOString(),
+                        checkoutBy: this.currentUser.username,
+                        checkoutDate: new Date().toISOString().split('T')[0],
+                        actualCheckoutTime: currentTime
+                    });
                     successCount++;
                 } catch (error) {
                     console.error(`Error checking out reservation ${reservationId}:`, error);
@@ -2679,6 +2348,34 @@
             this.loadCheckoutData();
             this.loadOverviewData();
         }
+
+        async loadFlightOptionsForCheckin() {
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                
+                const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+                const select = document.getElementById('checkinFlightFilter');
+                if (!select) return;
+                
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">All Flights/Hotels</option>';
+                flights.forEach(flight => {
+                    if (flight) {
+                        const option = document.createElement('option');
+                        option.value = flight;
+                        option.textContent = flight;
+                        select.appendChild(option);
+                    }
+                });
+                
+                if (flights.includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            } catch (error) {
+                console.error('Error loading flight options for check-in:', error);
+            }
+        }
+
         async loadCustomerOptionsForCheckin() {
             try {
                 const snapshot = await this.db.collection('reservations').get();
@@ -2760,340 +2457,6 @@
             }
         }
 
-        async loadFlightOptionsForRecheckin() {
-            try {
-                const snapshot = await this.db.collection('reservations').get();
-                
-                const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
-                const select = document.getElementById('recheckinFlightFilter');
-                if (!select) return;
-                
-                const currentValue = select.value;
-                select.innerHTML = '<option value="">All Flights/Hotels</option>';
-                flights.forEach(flight => {
-                    if (flight) {
-                        const option = document.createElement('option');
-                        option.value = flight;
-                        option.textContent = flight;
-                        select.appendChild(option);
-                    }
-                });
-                
-                if (flights.includes(currentValue)) {
-                    select.value = currentValue;
-                }
-            } catch (error) {
-                console.error('Error loading flight options for re-check-in:', error);
-            }
-        }
-
-        async loadCustomerOptionsForRecheckin() {
-            try {
-                const snapshot = await this.db.collection('reservations').get();
-                
-                const customers = [...new Set(snapshot.docs.map(doc => doc.data().customer))];
-                const select = document.getElementById('recheckinCustomerFilter');
-                if (!select) return;
-                
-                const currentValue = select.value;
-                select.innerHTML = '<option value="">All Customers</option>';
-                customers.forEach(customer => {
-                    if (customer) {
-                        const option = document.createElement('option');
-                        option.value = customer;
-                        option.textContent = customer;
-                        select.appendChild(option);
-                    }
-                });
-                
-                if (customers.includes(currentValue)) {
-                    select.value = currentValue;
-                }
-            } catch (error) {
-                console.error('Error loading customer options for re-check-in:', error);
-            }
-        }
-
-        async openReopenModal(reservationId) {
-            try {
-                const doc = await this.db.collection('reservations').doc(reservationId).get();
-                if (!doc.exists) {
-                    alert('Reservation not found!');
-                    return;
-                }
-                
-                const reservation = doc.data();
-                
-                // Populate the reopen modal
-                document.getElementById('reopenReservationId').value = reservationId;
-                document.getElementById('reopenGuestName').value = reservation.guestName || '';
-                document.getElementById('reopenCustomer').value = reservation.customer || '';
-                document.getElementById('reopenFlightHotel').value = reservation.flightHotel || '';
-                
-                // Set current time as default for new STA
-                const now = new Date();
-                const currentTime = now.toTimeString().slice(0, 5);
-                document.getElementById('reopenNewSta').value = currentTime;
-                
-                // Show modal
-                const modal = new bootstrap.Modal(document.getElementById('reopenModal'));
-                modal.show();
-                
-            } catch (error) {
-                console.error('Error loading reservation for reopen:', error);
-                alert('Error loading reservation details.');
-            }
-        }
-
-        async saveReopenReservation() {
-            const reservationId = document.getElementById('reopenReservationId').value;
-            const newStatus = document.getElementById('reopenStatus').value;
-            const newSta = document.getElementById('reopenNewSta').value;
-            const remarks = document.getElementById('reopenRemarks').value;
-            
-            if (!newSta) {
-                alert('Please enter new STA/ETA time.');
-                return;
-            }
-            
-            try {
-                const updateData = {
-                    status: newStatus,
-                    sta: newSta,
-                    noShowReason: null,
-                    noShowMarkedAt: null,
-                    noShowMarkedBy: null,
-                    updatedAt: new Date().toISOString(),
-                    updatedBy: this.currentUser.username
-                };
-                
-                if (remarks) {
-                    updateData.reopenRemarks = remarks;
-                }
-                
-                if (newStatus === 'checked-in') {
-                    const now = new Date();
-                    const currentTime = now.toTimeString().slice(0, 5);
-                    const checkinTime = now.toLocaleTimeString('en-US', { 
-                        hour12: true, 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                    });
-                    
-                    updateData.actualCheckinTime = currentTime;
-                    updateData.checkinTime = checkinTime;
-                    updateData.checkinDateTime = now.toISOString();
-                    updateData.checkinBy = this.currentUser.username;
-                    updateData.checkinDate = new Date().toISOString().split('T')[0];
-                }
-                
-                await this.db.collection('reservations').doc(reservationId).update(updateData);
-                
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('reopenModal'));
-                if (modal) {
-                    modal.hide();
-                }
-                
-                alert('Reservation reopened successfully!');
-                
-                // Refresh all data
-                this.loadCheckinData();
-                this.loadOverviewData();
-                
-            } catch (error) {
-                console.error('Error reopening reservation:', error);
-                alert('Error reopening reservation. Please try again.');
-            }
-        }
-
-        // Re-Check-In Functions
-        async openRecheckinModal(reservationId) {
-            try {
-                const doc = await this.db.collection('reservations').doc(reservationId).get();
-                if (!doc.exists) {
-                    alert('Reservation not found!');
-                    return;
-                }
-                
-                const reservation = doc.data();
-                
-                // Populate the re-checkin modal
-                document.getElementById('recheckinReservationId').value = reservationId;
-                document.getElementById('recheckinGuestName').value = reservation.guestName || '';
-                document.getElementById('recheckinCustomer').value = reservation.customer || '';
-                document.getElementById('recheckinFlightHotel').value = reservation.flightHotel || '';
-                document.getElementById('recheckinPreviousCheckout').value = reservation.checkoutTime || 'N/A';
-                
-                // Set current time as default for re-checkin time
-                const now = new Date();
-                const currentTime = now.toTimeString().slice(0, 5);
-                document.getElementById('recheckinTime').value = currentTime;
-                
-                // Show modal
-                const modal = new bootstrap.Modal(document.getElementById('recheckinModal'));
-                modal.show();
-                
-            } catch (error) {
-                console.error('Error loading reservation for re-check-in:', error);
-                alert('Error loading reservation details.');
-            }
-        }
-
-        async saveRecheckin() {
-            const reservationId = document.getElementById('recheckinReservationId').value;
-            const recheckinTime = document.getElementById('recheckinTime').value;
-            const recheckinReason = document.getElementById('recheckinReason').value;
-            const recheckinNewSta = document.getElementById('recheckinNewSta').value;
-            const recheckinRemarks = document.getElementById('recheckinRemarks').value;
-            
-            if (!recheckinTime) {
-                alert('Please enter re-check-in time.');
-                return;
-            }
-            
-            if (!recheckinReason) {
-                alert('Please enter reason for re-check-in.');
-                return;
-            }
-            
-            const now = new Date();
-            const checkinTime = now.toLocaleTimeString('en-US', { 
-                hour12: true, 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            const recheckinData = {
-                recheckinTime: recheckinTime,
-                recheckinDateTime: now.toISOString(),
-                recheckinBy: this.currentUser.username,
-                recheckinReason: recheckinReason,
-                recheckinRemarks: recheckinRemarks || null,
-                newSta: recheckinNewSta || null
-            };
-            
-            try {
-                await this.db.collection('reservations').doc(reservationId).update({
-                    status: 'rechecked-in',
-                    recheckinData: recheckinData,
-                    updatedAt: now.toISOString(),
-                    updatedBy: this.currentUser.username
-                });
-                
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('recheckinModal'));
-                if (modal) {
-                    modal.hide();
-                }
-                
-                alert('Guest re-checked in successfully!');
-                
-                // Refresh all data
-                this.loadCheckoutData();
-                this.loadRecheckinData();
-                this.loadOverviewData();
-                
-            } catch (error) {
-                console.error('Error re-checking in guest:', error);
-                alert('Error re-checking in guest. Please try again.');
-            }
-        }
-
-        async openRecheckoutModal(reservationId) {
-            try {
-                const doc = await this.db.collection('reservations').doc(reservationId).get();
-                if (!doc.exists) {
-                    alert('Reservation not found!');
-                    return;
-                }
-                
-                const reservation = doc.data();
-                
-                // Populate the re-checkout modal
-                document.getElementById('recheckoutReservationId').value = reservationId;
-                document.getElementById('recheckoutGuestName').value = reservation.guestName || '';
-                document.getElementById('recheckoutCustomer').value = reservation.customer || '';
-                document.getElementById('recheckoutFlightHotel').value = reservation.flightHotel || '';
-                document.getElementById('recheckoutRecheckinTime').value = reservation.recheckinData?.recheckinTime || 'N/A';
-                document.getElementById('recheckoutRecheckinReason').value = reservation.recheckinData?.recheckinReason || 'N/A';
-                
-                // Set current time as default for new check-out time
-                const now = new Date();
-                const currentTime = now.toTimeString().slice(0, 5);
-                document.getElementById('recheckoutNewTime').value = currentTime;
-                
-                // Show modal
-                const modal = new bootstrap.Modal(document.getElementById('recheckoutModal'));
-                modal.show();
-                
-            } catch (error) {
-                console.error('Error loading reservation for re-check-out:', error);
-                alert('Error loading reservation details.');
-            }
-        }
-
-        async saveRecheckout() {
-            const reservationId = document.getElementById('recheckoutReservationId').value;
-            const newCheckoutTime = document.getElementById('recheckoutNewTime').value;
-            const recheckoutRemarks = document.getElementById('recheckoutRemarks').value;
-            
-            if (!newCheckoutTime) {
-                alert('Please enter new check-out time.');
-                return;
-            }
-            
-            const now = new Date();
-            const checkoutTime = now.toLocaleTimeString('en-US', { 
-                hour12: true, 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            try {
-                const doc = await this.db.collection('reservations').doc(reservationId).get();
-                const reservation = doc.data();
-                
-                // Update recheckin data with checkout information
-                const updatedRecheckinData = {
-                    ...reservation.recheckinData,
-                    recheckoutTime: newCheckoutTime,
-                    recheckoutDateTime: now.toISOString(),
-                    recheckoutBy: this.currentUser.username,
-                    recheckoutRemarks: recheckoutRemarks || null
-                };
-                
-                await this.db.collection('reservations').doc(reservationId).update({
-                    status: 'checked-out',
-                    recheckinData: updatedRecheckinData,
-                    checkoutTime: checkoutTime,
-                    checkoutDateTime: now.toISOString(),
-                    checkoutBy: this.currentUser.username,
-                    actualCheckoutTime: newCheckoutTime,
-                    updatedAt: now.toISOString(),
-                    updatedBy: this.currentUser.username
-                });
-                
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('recheckoutModal'));
-                if (modal) {
-                    modal.hide();
-                }
-                
-                alert('Guest checked out successfully!');
-                
-                // Refresh all data
-                this.loadCheckinData();
-                this.loadCheckoutData();
-                this.loadRecheckinData();
-                this.loadOverviewData();
-                
-            } catch (error) {
-                console.error('Error checking out guest:', error);
-                alert('Error checking out guest. Please try again.');
-            }
-        }
-
         async loadCheckinData() {
             const dateInput = document.getElementById('checkinDateFilter');
             const flightSelect = document.getElementById('checkinFlightFilter');
@@ -3111,7 +2474,7 @@
             try {
                 let query = this.db.collection('reservations');
                 
-                // Apply filters - include 'no-show' status
+                // Apply filters
                 if (date) {
                     query = query.where('reservationDate', '==', date);
                 }
@@ -3147,66 +2510,16 @@
                         if (focFilter === 'false' && isFOC) return;
                     }
                     
-                    // Show reserved and no-show guests (not rechecked-in)
-                    if (data.status !== 'reserved' && data.status !== 'no-show') return;
+                    // Only show reserved guests (not checked-in, checked-out, or no-show)
+                    if (data.status !== 'reserved') return;
                     
                     hasData = true;
-                    
-                    // Check if this should be marked as pending no-show (only for reserved status)
-                    let isPendingNoShow = false;
-                    let rowClass = '';
-                    let statusDisplay = '';
-                    
-                    if (data.status === 'no-show') {
-                        // Actual no-show
-                        rowClass = 'noshow-row';
-                        statusDisplay = '<span class="status-badge status-noshow">No-Show</span>';
-                    } else if (data.status === 'reserved') {
-                        // Check if pending no-show
-                        isPendingNoShow = this.isNoShow(data.sta, currentTime);
-                        rowClass = isPendingNoShow ? 'noshow-row' : '';
-                        statusDisplay = isPendingNoShow ? 
-                            '<span class="status-badge status-pending-noshow">No-Show (Pending)</span>' : 
-                            '<span class="status-badge status-reserved">Reserved</span>';
-                    }
+                    const isNoShow = this.isNoShow(data.sta, currentTime);
+                    const rowClass = isNoShow ? 'noshow-row' : '';
                     
                     const focBadge = data.foc ? '<span class="foc-badge">FOC</span>' : '';
                     
                     const isSelected = this.selectedCheckinReservations.has(doc.id);
-                    
-                    // Different actions based on status
-                    let actionButtons = '';
-                    
-                    if (data.status === 'no-show') {
-                        // For no-show guests, show reopen options
-                        actionButtons = `
-                            <div class="action-buttons">
-                                <button class="btn btn-sm btn-primary" onclick="app.openReopenModal('${doc.id}')">
-                                    <i class="fas fa-undo me-1"></i> Reopen
-                                </button>
-                                <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
-                        `;
-                    } else {
-                        // For reserved guests (including pending no-shows)
-                        actionButtons = `
-                            <div class="action-buttons">
-                                <button class="btn btn-sm btn-success" onclick="app.openQuickCheckinModal('${doc.id}')">
-                                    <i class="fas fa-sign-in-alt"></i>
-                                </button>
-                                <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                ${isPendingNoShow ? `
-                                <button class="btn btn-sm btn-danger" onclick="app.markNoShow('${doc.id}')">
-                                    <i class="fas fa-user-times"></i>
-                                </button>
-                                ` : ''}
-                            </div>
-                        `;
-                    }
                     
                     const row = `
                         <tr class="${rowClass}">
@@ -3221,9 +2534,26 @@
                             <td>${data.sta}</td>
                             <td>${data.direction}</td>
                             <td>${focBadge}</td>
-                            <td>${statusDisplay}</td>
                             <td>
-                                ${actionButtons}
+                                ${isNoShow ? 
+                                    '<span class="status-badge status-noshow">No-Show</span>' : 
+                                    '<span class="status-badge status-reserved">Reserved</span>'
+                                }
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-success" onclick="app.openQuickCheckinModal('${doc.id}')">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    ${isNoShow ? `
+                                    <button class="btn btn-sm btn-danger" onclick="app.markNoShow('${doc.id}')">
+                                        <i class="fas fa-user-times"></i>
+                                    </button>
+                                    ` : ''}
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -3359,8 +2689,12 @@
             const focFilter = focSelect ? focSelect.value : '';
             
             try {
-                // First, get all reservations
-                const snapshot = await this.db.collection('reservations').get();
+                let query = this.db.collection('reservations');
+                
+                // Apply status filter - show checked-in guests only
+                query = query.where('status', '==', 'checked-in');
+                
+                const snapshot = await query.get();
                 tableBody.innerHTML = '';
                 
                 if (snapshot.empty) {
@@ -3380,16 +2714,8 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     
-                    // Show only checked-in AND rechecked-in guests
-                    if (data.status !== 'checked-in' && data.status !== 'rechecked-in') return;
-                    
-                    // Apply date filter
-                    if (date) {
-                        const checkinDate = data.checkinDate;
-                        if (checkinDate !== date) return;
-                    }
-                    
                     // Apply additional filters
+                    if (date && data.checkinDate !== date) return;
                     if (flightFilter && data.flightHotel !== flightFilter) return;
                     if (customerFilter && data.customer !== customerFilter) return;
                     if (focFilter) {
@@ -3402,38 +2728,14 @@
                     
                     const focBadge = data.foc ? '<span class="foc-badge">FOC</span>' : '';
                     
-                    // Determine status display
-                    let statusDisplay = '';
-                    if (data.status === 'rechecked-in') {
-                        statusDisplay = '<span class="status-badge status-recheckedin">Re-Checked-In</span>';
-                    } else {
-                        statusDisplay = '<span class="status-badge status-checkedin">Checked-In</span>';
-                    }
-                    
                     const isSelected = this.selectedCheckoutReservations.has(doc.id);
                     
-                    // Determine action button based on status
-                    let actionButton = '';
-                    if (data.status === 'rechecked-in') {
-                        actionButton = `
-                            <button class="btn btn-sm btn-warning" onclick="app.openRecheckoutModal('${doc.id}')">
-                                <i class="fas fa-sign-out-alt"></i>
-                            </button>
-                        `;
-                    } else {
-                        actionButton = `
-                            <button class="btn btn-sm btn-warning" onclick="app.checkoutGuest('${doc.id}')">
-                                <i class="fas fa-sign-out-alt"></i>
-                            </button>
-                        `;
-                    }
-                    
                     const row = `
-                        <tr class="${data.status === 'rechecked-in' ? 'recheckin-row' : ''}">
+                        <tr>
                             <td>
                                 <input type="checkbox" class="bulk-checkbox" value="${doc.id}" 
-                                    ${isSelected ? 'checked' : ''}
-                                    onchange="app.toggleCheckoutSelection('${doc.id}')">
+                                       ${isSelected ? 'checked' : ''}
+                                       onchange="app.toggleCheckoutSelection('${doc.id}')">
                             </td>
                             <td>${data.guestName}</td>
                             <td>${data.customer}</td>
@@ -3442,10 +2744,12 @@
                             <td>${data.direction}</td>
                             <td>${data.checkinTime || 'N/A'}</td>
                             <td>${focBadge}</td>
-                            <td>${statusDisplay}</td>
+                            <td><span class="status-badge status-checkedin">Checked-In</span></td>
                             <td>
                                 <div class="action-buttons">
-                                    ${actionButton}
+                                    <button class="btn btn-sm btn-warning" onclick="app.checkoutGuest('${doc.id}')">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                    </button>
                                     <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -3493,152 +2797,25 @@
             });
             
             try {
-                // Get the current reservation data
-                const doc = await this.db.collection('reservations').doc(reservationId).get();
-                const reservation = doc.data();
-                
-                if (reservation.status === 'rechecked-in') {
-                    // Handle rechecked-in guest checkout
-                    const updatedRecheckinData = {
-                        ...reservation.recheckinData,
-                        recheckoutTime: currentTime,
-                        recheckoutDateTime: now.toISOString(),
-                        recheckoutBy: this.currentUser.username
-                    };
-                    
-                    await this.db.collection('reservations').doc(reservationId).update({
-                        status: 'checked-out',
-                        recheckinData: updatedRecheckinData,
-                        checkoutTime: checkoutTime,
-                        checkoutDateTime: now.toISOString(),
-                        checkoutBy: this.currentUser.username,
-                        actualCheckoutTime: currentTime
-                    });
-                } else {
-                    // Handle regular checked-in guest
-                    await this.db.collection('reservations').doc(reservationId).update({
-                        status: 'checked-out',
-                        checkoutTime: checkoutTime,
-                        checkoutDateTime: now.toISOString(),
-                        checkoutBy: this.currentUser.username,
-                        checkoutDate: new Date().toISOString().split('T')[0],
-                        actualCheckoutTime: currentTime
-                    });
-                }
+                await this.db.collection('reservations').doc(reservationId).update({
+                    status: 'checked-out',
+                    checkoutTime: checkoutTime,
+                    checkoutDateTime: now.toISOString(),
+                    checkoutBy: this.currentUser.username,
+                    checkoutDate: new Date().toISOString().split('T')[0],
+                    actualCheckoutTime: currentTime
+                });
                 
                 alert('Guest checked out successfully!');
                 
                 // Refresh all data
                 this.loadCheckoutData();
-                this.loadRecheckinData();
                 this.loadOverviewData();
                 this.loadReportOptions();
                 
             } catch (error) {
                 console.error('Error checking out guest:', error);
                 alert('Error checking out guest. Please try again.');
-            }
-        }
-
-        async loadRecheckinData() {
-            const dateInput = document.getElementById('recheckinDateFilter');
-            const flightSelect = document.getElementById('recheckinFlightFilter');
-            const customerSelect = document.getElementById('recheckinCustomerFilter');
-            const focSelect = document.getElementById('recheckinFOCFilter');
-            const tableBody = document.getElementById('recheckinTable');
-            
-            if (!tableBody) return;
-            
-            const date = dateInput ? dateInput.value : '';
-            const flightFilter = flightSelect ? flightSelect.value : '';
-            const customerFilter = customerSelect ? customerSelect.value : '';
-            const focFilter = focSelect ? focSelect.value : '';
-            
-            try {
-                let query = this.db.collection('reservations');
-                
-                // Apply status filter - show checked-out guests only (who can be re-checked-in)
-                query = query.where('status', '==', 'checked-out');
-                
-                const snapshot = await query.get();
-                tableBody.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="9" class="text-center text-muted">
-                                No checked-out guests available for re-check-in
-                            </td>
-                        </tr>
-                    `;
-                    return;
-                }
-                
-                let hasData = false;
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    
-                    // Apply additional filters
-                    if (date && data.checkoutDate !== date) return;
-                    if (flightFilter && data.flightHotel !== flightFilter) return;
-                    if (customerFilter && data.customer !== customerFilter) return;
-                    if (focFilter) {
-                        const isFOC = data.foc || false;
-                        if (focFilter === 'true' && !isFOC) return;
-                        if (focFilter === 'false' && isFOC) return;
-                    }
-                    
-                    // Skip guests who are already rechecked-in
-                    if (data.status === 'rechecked-in') return;
-                    
-                    hasData = true;
-                    
-                    const focBadge = data.foc ? '<span class="foc-badge">FOC</span>' : '';
-                    
-                    const row = `
-                        <tr>
-                            <td>${data.guestName}</td>
-                            <td>${data.customer}</td>
-                            <td>${data.flightHotel}</td>
-                            <td>${data.sta}</td>
-                            <td>${data.direction}</td>
-                            <td>${data.checkinTime || 'N/A'}</td>
-                            <td>${data.checkoutTime || 'N/A'}</td>
-                            <td>${focBadge}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-primary" onclick="app.openRecheckinModal('${doc.id}')">
-                                        <i class="fas fa-redo me-1"></i> Re-Check-In
-                                    </button>
-                                    <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
-                });
-                
-                if (!hasData) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="9" class="text-center text-muted">
-                                No guests match the selected filters
-                            </td>
-                        </tr>
-                    `;
-                }
-            } catch (error) {
-                console.error('Error loading re-check-in data:', error);
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="9" class="text-center text-danger">
-                            Error loading data. Please try again.
-                        </td>
-                    </tr>
-                `;
             }
         }
 
@@ -3774,42 +2951,6 @@
                         checkoutCustomerSelect.value = currentValue;
                     }
                 }
-                
-                // Re-check-in flight filter
-                const recheckinFlightSelect = document.getElementById('recheckinFlightFilter');
-                if (recheckinFlightSelect) {
-                    const currentValue = recheckinFlightSelect.value;
-                    recheckinFlightSelect.innerHTML = '<option value="">All Flights/Hotels</option>';
-                    flights.forEach(flight => {
-                        if (flight) {
-                            const option = document.createElement('option');
-                            option.value = flight;
-                            option.textContent = flight;
-                            recheckinFlightSelect.appendChild(option);
-                        }
-                    });
-                    if (flights.includes(currentValue)) {
-                        recheckinFlightSelect.value = currentValue;
-                    }
-                }
-                
-                // Re-check-in customer filter
-                const recheckinCustomerSelect = document.getElementById('recheckinCustomerFilter');
-                if (recheckinCustomerSelect) {
-                    const currentValue = recheckinCustomerSelect.value;
-                    recheckinCustomerSelect.innerHTML = '<option value="">All Customers</option>';
-                    customers.forEach(customer => {
-                        if (customer) {
-                            const option = document.createElement('option');
-                            option.value = customer;
-                            option.textContent = customer;
-                            recheckinCustomerSelect.appendChild(option);
-                        }
-                    });
-                    if (customers.includes(currentValue)) {
-                        recheckinCustomerSelect.value = currentValue;
-                    }
-                }
             } catch (error) {
                 console.error('Error loading report options:', error);
             }
@@ -3834,16 +2975,14 @@
                 let noShows = 0;
                 let activeNow = 0;
                 let focCount = 0;
-                let recheckins = 0;
                 
                 const today = new Date().toISOString().split('T')[0];
                 let todayReservations = 0;
                 let todayCheckIns = 0;
                 let todayCheckOuts = 0;
                 let todayActive = 0;
-                //let todayFOC = 0;
+                let todayFOC = 0;
                 let todayNoShows = 0;
-                let todayRecheckins = 0;
                 
                 const customerData = {};
                 const flightData = {};
@@ -3876,9 +3015,6 @@
                         checkOuts++;
                     } else if (data.status === 'no-show') {
                         noShows++;
-                    } else if (data.status === 'rechecked-in') {
-                        recheckins++;
-                        activeNow++;
                     }
                     
                     // Count FOC
@@ -3902,58 +3038,45 @@
                         todayCheckOuts++;
                     }
                     
-                    if ((data.status === 'checked-in' || data.status === 'rechecked-in') && checkinDate === today) {
+                    if (data.status === 'checked-in' && checkinDate === today) {
                         todayActive++;
                     }
                     
-                    
+                    if (data.foc && reservationDate === today) {
+                        todayFOC++;
+                    }
                     
                     if (data.status === 'no-show' && reservationDate === today) {
                         todayNoShows++;
                     }
                     
-                    if (data.status === 'rechecked-in' && data.recheckinData && data.recheckinData.recheckinDateTime) {
-                        const recheckinDate = new Date(data.recheckinData.recheckinDateTime).toISOString().split('T')[0];
-                        if (recheckinDate === today) {
-                            todayRecheckins++;
-                        }
-                    }
-                    
                     // Customer breakdown
                     if (data.customer) {
                         if (!customerData[data.customer]) {
-                            customerData[data.customer] = { total: 0, checkedIn: 0, noShow: 0, foc: 0, recheckin: 0 };
+                            customerData[data.customer] = { total: 0, checkedIn: 0, noShow: 0, foc: 0 };
                         }
                         customerData[data.customer].total++;
-                        if (data.status === 'checked-in' || data.status === 'rechecked-in') customerData[data.customer].checkedIn++;
+                        if (data.status === 'checked-in') customerData[data.customer].checkedIn++;
                         if (data.status === 'no-show') customerData[data.customer].noShow++;
                         if (data.foc) customerData[data.customer].foc++;
-                        if (data.status === 'rechecked-in') customerData[data.customer].recheckin++;
                     }
                     
                     // Flight breakdown
                     if (data.flightHotel) {
                         if (!flightData[data.flightHotel]) {
-                            flightData[data.flightHotel] = { total: 0, checkedIn: 0, noShow: 0, foc: 0, recheckin: 0 };
+                            flightData[data.flightHotel] = { total: 0, checkedIn: 0, noShow: 0, foc: 0 };
                         }
                         flightData[data.flightHotel].total++;
-                        if (data.status === 'checked-in' || data.status === 'rechecked-in') flightData[data.flightHotel].checkedIn++;
+                        if (data.status === 'checked-in') flightData[data.flightHotel].checkedIn++;
                         if (data.status === 'no-show') flightData[data.flightHotel].noShow++;
                         if (data.foc) flightData[data.flightHotel].foc++;
-                        if (data.status === 'rechecked-in') flightData[data.flightHotel].recheckin++;
                     }
                     
                     // Recent activities (last 10)
                     let activity = '';
                     let activityTime = '';
                     
-                    if (data.recheckinData && data.recheckinData.recheckoutDateTime) {
-                        activity = 'Re-Checked Out';
-                        activityTime = data.recheckinData.recheckoutDateTime;
-                    } else if (data.recheckinData && data.recheckinData.recheckinDateTime) {
-                        activity = 'Re-Checked In';
-                        activityTime = data.recheckinData.recheckinDateTime;
-                    } else if (data.checkoutDateTime) {
+                    if (data.checkoutDateTime) {
                         activity = 'Checked Out';
                         activityTime = data.checkoutDateTime;
                     } else if (data.checkinDateTime) {
@@ -3985,15 +3108,13 @@
                 document.getElementById('overviewCheckIns').textContent = checkIns;
                 document.getElementById('overviewCheckOuts').textContent = checkOuts;
                 document.getElementById('overviewNoShows').textContent = noShows;
-                document.getElementById('overviewRecheckins').textContent = recheckins;
                 
                 // Update today's statistics
                 document.getElementById('todayReservations').textContent = todayReservations;
                 document.getElementById('todayCheckIns').textContent = todayCheckIns;
                 document.getElementById('todayCheckOuts').textContent = todayCheckOuts;
                 document.getElementById('todayActive').textContent = todayActive;
-                //document.getElementById('todayFOC').textContent = todayFOC;
-                document.getElementById('todayRecheckins').textContent = todayRecheckins;
+                document.getElementById('todayFOC').textContent = todayFOC;
                 document.getElementById('todayNoShows').textContent = todayNoShows;
                 
                 // Create charts
@@ -4026,7 +3147,6 @@
             const totalData = sortedCustomers.map(([, data]) => data.total);
             const checkedInData = sortedCustomers.map(([, data]) => data.checkedIn);
             const noShowData = sortedCustomers.map(([, data]) => data.noShow);
-            const recheckinData = sortedCustomers.map(([, data]) => data.recheckin);
             
             this.customerChart = new Chart(ctx, {
                 type: 'bar',
@@ -4045,13 +3165,6 @@
                             data: checkedInData,
                             backgroundColor: 'rgba(75, 192, 192, 0.7)',
                             borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Re-Check-Ins',
-                            data: recheckinData,
-                            backgroundColor: 'rgba(153, 102, 255, 0.7)',
-                            borderColor: 'rgba(153, 102, 255, 1)',
                             borderWidth: 1
                         },
                         {
@@ -4189,8 +3302,6 @@
                     statusBadge = '<span class="status-badge status-checkedin">Checked-In</span>';
                 } else if (activity.status === 'checked-out') {
                     statusBadge = '<span class="status-badge status-checkedout">Checked-Out</span>';
-                } else if (activity.status === 'rechecked-in') {
-                    statusBadge = '<span class="status-badge status-recheckedin">Re-Checked-In</span>';
                 } else if (activity.status === 'no-show') {
                     statusBadge = '<span class="status-badge status-noshow">No-Show</span>';
                 } else {
@@ -4238,15 +3349,6 @@
             document.getElementById('checkoutCustomerFilter').value = '';
             document.getElementById('checkoutFOCFilter').value = '';
             this.loadCheckoutData();
-        }
-
-        clearRecheckinFilters() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('recheckinDateFilter').value = today;
-            document.getElementById('recheckinFlightFilter').value = '';
-            document.getElementById('recheckinCustomerFilter').value = '';
-            document.getElementById('recheckinFOCFilter').value = '';
-            this.loadRecheckinData();
         }
 
         clearReportFilters() {
@@ -4450,68 +3552,6 @@
             }
         }
 
-        async generateRecheckinReport() {
-            const fromDateInput = document.getElementById('reportFromDate');
-            const toDateInput = document.getElementById('reportToDate');
-            const flightSelect = document.getElementById('reportFlightFilter');
-            const customerSelect = document.getElementById('reportCustomerFilter');
-            
-            if (!fromDateInput || !toDateInput) return;
-            
-            const fromDate = fromDateInput.value;
-            const toDate = toDateInput.value;
-            const flightFilter = flightSelect ? flightSelect.value : '';
-            const customerFilter = customerSelect ? customerSelect.value : '';
-            
-            if (fromDate && toDate && fromDate > toDate) {
-                alert('From date cannot be after To date');
-                return;
-            }
-            
-            try {
-                const snapshot = await this.db.collection('reservations').get();
-                const reservations = [];
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const id = doc.id;
-                    
-                    // Only include guests with recheckin data
-                    if (!data.recheckinData) return;
-                    
-                    // Apply date filter
-                    if (fromDate && toDate) {
-                        const checkDate = data.recheckinData.recheckinDateTime ? 
-                            new Date(data.recheckinData.recheckinDateTime).toISOString().split('T')[0] : 
-                            data.checkoutDate || data.checkinDate || data.reservationDate;
-                        if (!checkDate) return;
-                        
-                        if (checkDate < fromDate || checkDate > toDate) {
-                            return;
-                        }
-                    }
-                    
-                    // Apply flight filter
-                    if (flightFilter && data.flightHotel !== flightFilter) return;
-                    
-                    // Apply customer filter
-                    if (customerFilter && data.customer !== customerFilter) return;
-                    
-                    reservations.push({ id, ...data });
-                });
-                
-                if (reservations.length === 0) {
-                    alert('No re-check-in reservations found for the selected criteria.');
-                    return;
-                }
-                
-                this.displayRecheckinReport(reservations, fromDate, toDate);
-            } catch (error) {
-                console.error('Error generating re-check-in report:', error);
-                alert('Error generating re-check-in report. Please try again.');
-            }
-        }
-
         displayReport(reservations, fromDate, toDate) {
             const printWindow = window.open('', '_blank');
             
@@ -4528,14 +3568,12 @@
             let noShow = 0;
             let reserved = 0;
             let focCount = 0;
-            let recheckedIn = 0;
             
             reservations.forEach(res => {
                 if (res.status === 'checked-in') checkedIn++;
                 else if (res.status === 'checked-out') checkedOut++;
                 else if (res.status === 'no-show') noShow++;
                 else if (res.status === 'reserved') reserved++;
-                else if (res.status === 'rechecked-in') recheckedIn++;
                 
                 if (res.foc) focCount++;
             });
@@ -4670,7 +3708,6 @@
                             .status-checkedin { background-color: #c6f6d5; color: #22543d; }
                             .status-checkedout { background-color: #bee3f8; color: #2a4365; }
                             .status-noshow { background-color: #fed7d7; color: #742a2a; }
-                            .status-recheckedin { background-color: #e9d8fd; color: #553c9a; }
                             .foc-badge {
                                 background-color: #9ae6b4;
                                 color: #22543d;
@@ -4799,7 +3836,6 @@
                             .status-checkedin { background-color: #c6f6d5; color: #22543d; }
                             .status-checkedout { background-color: #bee3f8; color: #2a4365; }
                             .status-noshow { background-color: #fed7d7; color: #742a2a; }
-                            .status-recheckedin { background-color: #e9d8fd; color: #553c9a; }
                             .foc-badge {
                                 background-color: #9ae6b4;
                                 color: #22543d;
@@ -4846,8 +3882,7 @@
                                     <div class="detail-label">Status Breakdown:</div>
                                     <div class="detail-value">
                                         Checked-In: ${checkedIn} | Checked-Out: ${checkedOut} | 
-                                        Re-Checked-In: ${recheckedIn} | No-Show: ${noShow} | 
-                                        Reserved: ${reserved} | FOC: ${focCount}
+                                        No-Show: ${noShow} | Reserved: ${reserved} | FOC: ${focCount}
                                     </div>
                                 </div>
                             </div>
@@ -4862,12 +3897,12 @@
                                     <th>Flight/Hotel</th>
                                     <th>STA/ETA</th>
                                     <th>Direction</th>
+                                    <th>Nationality</th>
+                                    <th>Reservation Date</th>
                                     <th>Check-In</th>
                                     <th>Check-Out</th>
-                                    <th>Re-Check-In</th>
-                                    <th>Re-Check-Out</th>
-                                    <th>Remarks</th>
                                     <th>Status</th>
+                                    <th>FOC</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -4879,8 +3914,6 @@
                     statusBadge = '<span class="status-badge status-checkedin">Checked-In</span>';
                 } else if (res.status === 'checked-out') {
                     statusBadge = '<span class="status-badge status-checkedout">Checked-Out</span>';
-                } else if (res.status === 'rechecked-in') {
-                    statusBadge = '<span class="status-badge status-recheckedin">Re-Checked-In</span>';
                 } else if (res.status === 'no-show') {
                     statusBadge = '<span class="status-badge status-noshow">No-Show</span>';
                 } else {
@@ -4889,15 +3922,6 @@
                 
                 const focBadge = res.foc ? '<span class="foc-badge">FOC</span>' : '';
                 
-                // Build remarks with re-checkin information
-                let remarks = res.remarks || '';
-                if (res.recheckinData) {
-                    remarks += ` Re-checked in at ${res.recheckinData.recheckinTime} due to: ${res.recheckinData.recheckinReason}.`;
-                    if (res.recheckinData.recheckoutTime) {
-                        remarks += ` Re-checked out at ${res.recheckinData.recheckoutTime}.`;
-                    }
-                }
-                
                 reportHTML += `
                     <tr>
                         <td>${res.guestName}</td>
@@ -4905,12 +3929,12 @@
                         <td>${res.flightHotel}</td>
                         <td>${res.sta}</td>
                         <td>${res.direction}</td>
+                        <td>${res.nationality}</td>
+                        <td>${res.reservationDate}</td>
                         <td>${res.checkinTime || '-'}</td>
                         <td>${res.checkoutTime || '-'}</td>
-                        <td>${res.recheckinData?.recheckinTime || '-'}</td>
-                        <td>${res.recheckinData?.recheckoutTime || '-'}</td>
-                        <td>${remarks}</td>
                         <td>${statusBadge}</td>
+                        <td>${focBadge}</td>
                     </tr>
                 `;
             });
@@ -5516,7 +4540,6 @@
                             .status-checkedin { background-color: #bee3f8; color: #2a4365; }
                             .status-checkedout { background-color: #bee3f8; color: #2a4365; }
                             .status-noshow { background-color: #fed7d7; color: #742a2a; }
-                            .status-recheckedin { background-color: #e9d8fd; color: #553c9a; }
                         }
                         @media screen {
                             body {
@@ -5646,7 +4669,6 @@
                             .status-checkedin { background-color: #bee3f8; color: #2a4365; }
                             .status-checkedout { background-color: #bee3f8; color: #2a4365; }
                             .status-noshow { background-color: #fed7d7; color: #742a2a; }
-                            .status-recheckedin { background-color: #e9d8fd; color: #553c9a; }
                         }
                     </style>
                 </head>
@@ -5715,8 +4737,6 @@
                                     <th>Reservation Date</th>
                                     <th>Check-In</th>
                                     <th>Check-Out</th>
-                                    <th>Re-Check-In</th>
-                                    <th>Re-Check-Out</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -5729,8 +4749,6 @@
                         statusBadge = '<span class="status-badge status-checkedin">Checked-In</span>';
                     } else if (res.status === 'checked-out') {
                         statusBadge = '<span class="status-badge status-checkedout">Checked-Out</span>';
-                    } else if (res.status === 'rechecked-in') {
-                        statusBadge = '<span class="status-badge status-recheckedin">Re-Checked-In</span>';
                     } else if (res.status === 'no-show') {
                         statusBadge = '<span class="status-badge status-noshow">No-Show</span>';
                     } else {
@@ -5747,8 +4765,6 @@
                             <td>${res.reservationDate}</td>
                             <td>${res.checkinTime || '-'}</td>
                             <td>${res.checkoutTime || '-'}</td>
-                            <td>${res.recheckinData?.recheckinTime || '-'}</td>
-                            <td>${res.recheckinData?.recheckoutTime || '-'}</td>
                             <td>${statusBadge}</td>
                         </tr>
                     `;
@@ -5809,420 +4825,6 @@
             printWindow.focus();
         }
 
-        displayRecheckinReport(reservations, fromDate, toDate) {
-            const printWindow = window.open('', '_blank');
-            
-            const currentDate = new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            let reportHTML = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Re-Check-In Report - Vilu Lounge</title>
-                    <style>
-                        @media print {
-                            @page {
-                                size: A4;
-                                margin: 15mm;
-                            }
-                            body {
-                                font-family: Arial, sans-serif;
-                                font-size: 11px;
-                                color: #000;
-                                margin: 0;
-                                padding: 0;
-                            }
-                            .report-container {
-                                width: 100%;
-                            }
-                            .header {
-                                margin-bottom: 20px;
-                                padding-bottom: 15px;
-                                border-bottom: 1px solid #ddd;
-                            }
-                            .logo-address-section {
-                                width: 100%;
-                                margin-bottom: 15px;
-                            }
-                            .company-logo {
-                                width: 100px;
-                                height: auto;
-                                margin-bottom: 10px;
-                                display: block;
-                            }
-                            .company-info {
-                                text-align: left;
-                                font-size: 11px;
-                                line-height: 1.3;
-                            }
-                            .company-name {
-                                font-size: 16px;
-                                font-weight: bold;
-                                margin: 0 0 3px 0;
-                                color: #2c5282;
-                            }
-                            .company-address {
-                                font-size: 10px;
-                                margin: 0 0 2px 0;
-                            }
-                            .report-title {
-                                text-align: center;
-                                font-size: 14px;
-                                font-weight: bold;
-                                margin: 10px 0;
-                                color: #553c9a;
-                            }
-                            .report-details {
-                                margin-top: 15px;
-                                padding-top: 10px;
-                                border-top: 1px solid #ddd;
-                            }
-                            .detail-row {
-                                display: flex;
-                                margin-bottom: 4px;
-                            }
-                            .detail-label {
-                                font-weight: bold;
-                                width: 100px;
-                            }
-                            .detail-value {
-                                flex: 1;
-                            }
-                            table {
-                                width: 100%;
-                                border-collapse: collapse;
-                                margin: 10px 0 15px 0;
-                                page-break-inside: avoid;
-                            }
-                            th {
-                                background-color: #e9d8fd;
-                                color: #553c9a;
-                                padding: 6px 4px;
-                                text-align: left;
-                                border: 1px solid #ddd;
-                                font-size: 10px;
-                                font-weight: bold;
-                            }
-                            td {
-                                padding: 5px 4px;
-                                border: 1px solid #ddd;
-                                font-size: 10px;
-                            }
-                            .customer-section {
-                                margin-bottom: 20px;
-                                page-break-inside: avoid;
-                            }
-                            .customer-name {
-                                background-color: #e9d8fd;
-                                padding: 6px 10px;
-                                font-weight: bold;
-                                margin-bottom: 8px;
-                                font-size: 12px;
-                                border-left: 3px solid #9f7aea;
-                                color: #553c9a;
-                            }
-                            .footer {
-                                margin-top: 30px;
-                                page-break-inside: avoid;
-                                padding-top: 15px;
-                                border-top: 1px solid #ddd;
-                            }
-                            .signature-section {
-                                width: 45%;
-                                display: inline-block;
-                                vertical-align: top;
-                            }
-                            .signature-line {
-                                margin-top: 30px;
-                                border-top: 1px solid #000;
-                                width: 180px;
-                                padding-top: 4px;
-                                font-size: 10px;
-                            }
-                            .no-print {
-                                display: none;
-                            }
-                        }
-                        @media screen {
-                            body {
-                                font-family: Arial, sans-serif;
-                                font-size: 12px;
-                                padding: 20px;
-                                background: #f5f5f5;
-                            }
-                            .report-container {
-                                max-width: 210mm;
-                                margin: 0 auto;
-                                background: white;
-                                padding: 20px;
-                                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                            }
-                            .header {
-                                margin-bottom: 20px;
-                                padding-bottom: 20px;
-                                border-bottom: 1px solid #ddd;
-                            }
-                            .logo-address-section {
-                                width: 100%;
-                                margin-bottom: 15px;
-                            }
-                            .company-logo {
-                                width: 120px;
-                                height: auto;
-                                margin-bottom: 10px;
-                                display: block;
-                            }
-                            .company-info {
-                                text-align: left;
-                                font-size: 12px;
-                                line-height: 1.4;
-                            }
-                            .company-name {
-                                font-size: 18px;
-                                font-weight: bold;
-                                margin: 0 0 5px 0;
-                                color: #2c5282;
-                            }
-                            .company-address {
-                                font-size: 11px;
-                                margin: 0 0 2px 0;
-                            }
-                            .report-title {
-                                text-align: center;
-                                font-size: 16px;
-                                font-weight: bold;
-                                margin: 15px 0;
-                                color: #553c9a;
-                            }
-                            .report-details {
-                                margin-top: 15px;
-                                padding-top: 12px;
-                                border-top: 1px solid #ddd;
-                            }
-                            .detail-row {
-                                display: flex;
-                                margin-bottom: 5px;
-                            }
-                            .detail-label {
-                                font-weight: bold;
-                                width: 120px;
-                            }
-                            .detail-value {
-                                flex: 1;
-                            }
-                            table {
-                                width: 100%;
-                                border-collapse: collapse;
-                                margin: 15px 0 20px 0;
-                            }
-                            th {
-                                background-color: #e9d8fd;
-                                color: #553c9a;
-                                padding: 8px;
-                                text-align: left;
-                                border: 1px solid #ddd;
-                            }
-                            td {
-                                padding: 7px;
-                                border: 1px solid #ddd;
-                            }
-                            .customer-section {
-                                margin-bottom: 25px;
-                            }
-                            .customer-name {
-                                background-color: #e9d8fd;
-                                padding: 8px 12px;
-                                font-weight: bold;
-                                margin-bottom: 10px;
-                                font-size: 13px;
-                                border-left: 4px solid #9f7aea;
-                                color: #553c9a;
-                            }
-                            .footer {
-                                margin-top: 40px;
-                                padding-top: 20px;
-                                border-top: 1px solid #ddd;
-                            }
-                            .signature-section {
-                                width: 45%;
-                                display: inline-block;
-                                vertical-align: top;
-                            }
-                            .signature-line {
-                                margin-top: 40px;
-                                border-top: 1px solid #000;
-                                width: 200px;
-                                padding-top: 5px;
-                            }
-                            .print-buttons {
-                                text-align: center;
-                                margin-top: 20px;
-                                padding: 20px;
-                                background: #f8f9fa;
-                                border-radius: 5px;
-                            }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="report-container">
-                        <!-- Header -->
-                        <div class="header">
-                            <div class="logo-address-section">
-                                <img src="macl.png" alt="MACL Logo" class="company-logo">
-                                <div class="company-info">
-                                    <div class="company-name">Vilu Business Lounge</div>
-                                    <div class="company-address">Seaplane Terminal</div>
-                                    <div class="company-address">Velana International Airport</div>
-                                    <div class="company-address">Hulhule: 22000</div>
-                                    <div class="company-address">Republic of Maldives</div>
-                                    <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
-                                    <div class="company-address">W: www.macl.aero / E: vilu.lounge@macl.aero</div>
-                                </div>
-                            </div>
-                            
-                            <div class="report-title">RE-CHECK-IN REPORT</div>
-                            
-                            <div class="report-details">
-                                <div class="detail-row">
-                                    <div class="detail-label">Report Date:</div>
-                                    <div class="detail-value">${currentDate}</div>
-                                </div>
-                                ${fromDate && toDate ? `
-                                <div class="detail-row">
-                                    <div class="detail-label">Period:</div>
-                                    <div class="detail-value">${fromDate} to ${toDate}</div>
-                                </div>
-                                ` : ''}
-                                <div class="detail-row">
-                                    <div class="detail-label">Total Re-Check-Ins:</div>
-                                    <div class="detail-value">${reservations.length}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Report Content -->
-            `;
-            
-            // Group by customer
-            const reservationsByCustomer = {};
-            reservations.forEach(res => {
-                if (!reservationsByCustomer[res.customer]) {
-                    reservationsByCustomer[res.customer] = [];
-                }
-                reservationsByCustomer[res.customer].push(res);
-            });
-            
-            Object.entries(reservationsByCustomer).forEach(([customer, customerReservations]) => {
-                reportHTML += `
-                    <div class="customer-section">
-                        <div class="customer-name">Customer: ${customer} (${customerReservations.length} re-check-ins)</div>
-                        
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Guest Name</th>
-                                    <th>Flight/Hotel</th>
-                                    <th>First Check-In</th>
-                                    <th>First Check-Out</th>
-                                    <th>Re-Check-In Time</th>
-                                    <th>Re-Check-In Reason</th>
-                                    <th>Re-Check-Out Time</th>
-                                    <th>Re-Check-In By</th>
-                                    <th>Status</th>
-                                    <th>FOC</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                `;
-                
-                customerReservations.forEach(res => {
-                    const focBadge = res.foc ? '<span style="background-color: #9ae6b4; color: #22543d; padding: 1px 5px; border-radius: 8px; font-size: 9px;">FOC</span>' : '';
-                    
-                    let statusBadge = '';
-                    if (res.status === 'checked-in') {
-                        statusBadge = '<span style="background-color: #c6f6d5; color: #22543d; padding: 2px 6px; border-radius: 10px; font-size: 9px;">Checked-In</span>';
-                    } else if (res.status === 'checked-out') {
-                        statusBadge = '<span style="background-color: #bee3f8; color: #2a4365; padding: 2px 6px; border-radius: 10px; font-size: 9px;">Checked-Out</span>';
-                    } else if (res.status === 'rechecked-in') {
-                        statusBadge = '<span style="background-color: #e9d8fd; color: #553c9a; padding: 2px 6px; border-radius: 10px; font-size: 9px;">Re-Checked-In</span>';
-                    }
-                    
-                    reportHTML += `
-                        <tr>
-                            <td>${res.guestName}</td>
-                            <td>${res.flightHotel}</td>
-                            <td>${res.checkinTime || '-'}</td>
-                            <td>${res.checkoutTime || '-'}</td>
-                            <td>${res.recheckinData?.recheckinTime || '-'}</td>
-                            <td>${res.recheckinData?.recheckinReason || '-'}</td>
-                            <td>${res.recheckinData?.recheckoutTime || '-'}</td>
-                            <td>${res.recheckinData?.recheckinBy || '-'}</td>
-                            <td>${statusBadge}</td>
-                            <td>${focBadge}</td>
-                        </tr>
-                    `;
-                });
-                
-                reportHTML += `
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            });
-            
-            reportHTML += `
-                        <!-- Footer Signatures -->
-                        <div class="footer">
-                            <div class="signature-section">
-                                <div class="detail-row">
-                                    <div class="detail-label">Prepared by:</div>
-                                    <div class="detail-value">${this.currentUser.name}</div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">RC No:</div>
-                                    <div class="detail-value">${this.currentUser.RCNo}</div>
-                                </div>
-                                <div class="signature-line">Signature</div>
-                            </div>
-                            
-                            <div class="signature-section" style="float: right;">
-                                <div class="detail-row">
-                                    <div class="detail-label">Checked by:</div>
-                                    <div class="detail-value">_____________________</div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">RC No:</div>
-                                    <div class="detail-value">_____________________</div>
-                                </div>
-                                <div class="signature-line">Signature</div>
-                            </div>
-                            <div style="clear: both;"></div>
-                        </div>
-                        
-                        <!-- Print Buttons (only for screen) -->
-                        <div class="print-buttons no-print">
-                            <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
-                                Print Report
-                            </button>
-                            <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                                Close Window
-                            </button>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            `;
-            
-            printWindow.document.write(reportHTML);
-            printWindow.document.close();
-            printWindow.focus();
-        }
-
         async generateChargeSheet() {
             const fromDateInput = document.getElementById('reportFromDate');
             const toDateInput = document.getElementById('reportToDate');
@@ -6245,7 +4847,7 @@
                 const snapshot = await this.db.collection('reservations').get();
                 const reservations = [];
                 
-                // Get checked-in and checked-out reservations only (non-FOC)
+                // Get checked-in reservations only (non-FOC)
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     
@@ -6269,7 +4871,7 @@
                     if (customerFilter && data.customer !== customerFilter) return;
                     
                     // Only include checked-in and checked-out reservations
-                    if (data.status === 'checked-in' || data.status === 'checked-out' || data.status === 'rechecked-in') {
+                    if (data.status === 'checked-in' || data.status === 'checked-out') {
                         reservations.push({ id: doc.id, ...data });
                     }
                 });
@@ -7186,13 +5788,10 @@
             this.clearExcelPreview();
             this.loadCheckinData();
             this.loadCheckoutData();
-            this.loadRecheckinData();
             this.loadFlightOptionsForCheckin();
             this.loadFlightOptionsForCheckout();
-            this.loadFlightOptionsForRecheckin();
             this.loadCustomerOptionsForCheckin();
             this.loadCustomerOptionsForCheckout();
-            this.loadCustomerOptionsForRecheckin();
             this.loadReportOptions();
             this.loadOverviewData();
         }
@@ -7313,9 +5912,6 @@
                 'Status': item.status,
                 'Check-In Time': item.checkinTime || '',
                 'Check-Out Time': item.checkoutTime || '',
-                'Re-Check-In Time': item.recheckinData?.recheckinTime || '',
-                'Re-Check-In Reason': item.recheckinData?.recheckinReason || '',
-                'Re-Check-Out Time': item.recheckinData?.recheckoutTime || '',
                 'No-Show Reason': item.noShowReason || '',
                 'Remarks': item.remarks || '',
                 'Created By': item.createdBy,
