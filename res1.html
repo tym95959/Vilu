@@ -598,20 +598,6 @@
         .noshow-row:hover {
             background-color: #fed7d7 !important;
         }
-        
-        /* Pending no-show */
-        .status-pending-noshow { 
-            background-color: #fed7d7; 
-            color: #742a2a;
-            border: 1px solid #fc8181;
-        }
-        
-        /* Add to existing status badges */
-        .status-pending-noshow:after {
-            content: " (Pending)";
-            font-size: 0.7em;
-            opacity: 0.8;
-        }
     </style>
 </head>
 <body>
@@ -2470,7 +2456,98 @@
                 console.error('Error loading customer options for check-out:', error);
             }
         }
+        async openReopenModal(reservationId) {
+    try {
+        const doc = await this.db.collection('reservations').doc(reservationId).get();
+        if (!doc.exists) {
+            alert('Reservation not found!');
+            return;
+        }
+        
+        const reservation = doc.data();
+        
+        // Populate the reopen modal
+        document.getElementById('reopenReservationId').value = reservationId;
+        document.getElementById('reopenGuestName').value = reservation.guestName || '';
+        document.getElementById('reopenCustomer').value = reservation.customer || '';
+        document.getElementById('reopenFlightHotel').value = reservation.flightHotel || '';
+        
+        // Set current time as default for new STA
+        const now = new Date();
+        const currentTime = now.toTimeString().slice(0, 5);
+        document.getElementById('reopenNewSta').value = currentTime;
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('reopenModal'));
+        modal.show();
+        
+    } catch (error) {
+        console.error('Error loading reservation for reopen:', error);
+        alert('Error loading reservation details.');
+    }
+}
 
+async saveReopenReservation() {
+    const reservationId = document.getElementById('reopenReservationId').value;
+    const newStatus = document.getElementById('reopenStatus').value;
+    const newSta = document.getElementById('reopenNewSta').value;
+    const remarks = document.getElementById('reopenRemarks').value;
+    
+    if (!newSta) {
+        alert('Please enter new STA/ETA time.');
+        return;
+    }
+    
+    try {
+        const updateData = {
+            status: newStatus,
+            sta: newSta,
+            noShowReason: null,
+            noShowMarkedAt: null,
+            noShowMarkedBy: null,
+            updatedAt: new Date().toISOString(),
+            updatedBy: this.currentUser.username
+        };
+        
+        if (remarks) {
+            updateData.reopenRemarks = remarks;
+        }
+        
+        if (newStatus === 'checked-in') {
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5);
+            const checkinTime = now.toLocaleTimeString('en-US', { 
+                hour12: true, 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            updateData.actualCheckinTime = currentTime;
+            updateData.checkinTime = checkinTime;
+            updateData.checkinDateTime = now.toISOString();
+            updateData.checkinBy = this.currentUser.username;
+            updateData.checkinDate = new Date().toISOString().split('T')[0];
+        }
+        
+        await this.db.collection('reservations').doc(reservationId).update(updateData);
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('reopenModal'));
+        if (modal) {
+            modal.hide();
+        }
+        
+        alert('Reservation reopened successfully!');
+        
+        // Refresh all data
+        this.loadCheckinData();
+        this.loadOverviewData();
+        
+    } catch (error) {
+        console.error('Error reopening reservation:', error);
+        alert('Error reopening reservation. Please try again.');
+    }
+}    
         async loadCheckinData() {
             const dateInput = document.getElementById('checkinDateFilter');
             const flightSelect = document.getElementById('checkinFlightFilter');
@@ -2485,141 +2562,156 @@
             const customerFilter = customerSelect ? customerSelect.value : '';
             const focFilter = focSelect ? focSelect.value : '';
             
-            try {
-                let query = this.db.collection('reservations');
-                
-                // Apply filters
-                if (date) {
-                    query = query.where('reservationDate', '==', date);
-                }
-                
-                const snapshot = await query.get();
-                tableBody.innerHTML = '';
-                
-                if (snapshot.empty) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="9" class="text-center text-muted">
-                                No reservations found
-                            </td>
-                        </tr>
-                    `;
-                    this.updateCheckinSelectionUI();
-                    return;
-                }
-                
-                let hasData = false;
-                const now = new Date();
-                const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    
-                    // Apply additional filters
-                    if (flightFilter && data.flightHotel !== flightFilter) return;
-                    if (customerFilter && data.customer !== customerFilter) return;
-                    if (focFilter) {
-                        const isFOC = data.foc || false;
-                        if (focFilter === 'true' && !isFOC) return;
-                        if (focFilter === 'false' && isFOC) return;
-                    }
-                    
-                    // Only show reserved guests (not checked-in, checked-out, or no-show)
-                    if (data.status !== 'reserved') return;
-                    
-                    hasData = true;
-                    
-                    // Check if this should be marked as pending no-show
-                    const isPendingNoShow = this.isNoShow(data.sta, currentTime);
-                    const rowClass = isPendingNoShow ? 'noshow-row' : '';
-                    
-                    const focBadge = data.foc ? '<span class="foc-badge">FOC</span>' : '';
-                    
-                    const isSelected = this.selectedCheckinReservations.has(doc.id);
-                    
-                    // Determine status display
-                    let statusDisplay = '';
-                    if (isPendingNoShow) {
-                        statusDisplay = '<span class="status-badge status-pending-noshow">No-Show</span>';
-                    } else {
-                        statusDisplay = '<span class="status-badge status-reserved">Reserved</span>';
-                    }
-                    
-                    const row = `
-                        <tr class="${rowClass}">
-                            <td>
-                                <input type="checkbox" class="bulk-checkbox" value="${doc.id}" 
-                                       ${isSelected ? 'checked' : ''}
-                                       onchange="app.toggleCheckinSelection('${doc.id}')">
-                            </td>
-                            <td>${data.guestName}</td>
-                            <td>${data.customer}</td>
-                            <td>${data.flightHotel}</td>
-                            <td>${data.sta}</td>
-                            <td>${data.direction}</td>
-                            <td>${focBadge}</td>
-                            <td>${statusDisplay}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-success" onclick="app.openQuickCheckinModal('${doc.id}')">
-                                        <i class="fas fa-sign-in-alt"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="app.markNoShow('${doc.id}')">
-                                        <i class="fas fa-user-times"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
-                });
-                
-                if (!hasData) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="9" class="text-center text-muted">
-                                No guests match the selected filters
-                            </td>
-                        </tr>
-                    `;
-                }
-                
-                this.updateCheckinSelectionUI();
-            } catch (error) {
-                console.error('Error loading check-in data:', error);
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="9" class="text-center text-danger">
-                            Error loading data. Please try again.
-                        </td>
-                    </tr>
+             try {
+        let query = this.db.collection('reservations');
+        
+        // Apply filters - now include 'no-show' status
+        if (date) {
+            query = query.where('reservationDate', '==', date);
+        }
+        
+        const snapshot = await query.get();
+        tableBody.innerHTML = '';
+        
+        if (snapshot.empty) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center text-muted">
+                        No reservations found
+                    </td>
+                </tr>
+            `;
+            this.updateCheckinSelectionUI();
+            return;
+        }
+        
+        let hasData = false;
+        const now = new Date();
+        const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            
+            // Apply additional filters
+            if (flightFilter && data.flightHotel !== flightFilter) return;
+            if (customerFilter && data.customer !== customerFilter) return;
+            if (focFilter) {
+                const isFOC = data.foc || false;
+                if (focFilter === 'true' && !isFOC) return;
+                if (focFilter === 'false' && isFOC) return;
+            }
+            
+            // Show reserved and no-show guests
+            if (data.status !== 'reserved' && data.status !== 'no-show') return;
+            
+            hasData = true;
+            
+            // Check if this should be marked as pending no-show (only for reserved status)
+            let isPendingNoShow = false;
+            let rowClass = '';
+            let statusDisplay = '';
+            
+            if (data.status === 'no-show') {
+                // Actual no-show
+                rowClass = 'noshow-row';
+                statusDisplay = '<span class="status-badge status-noshow">No-Show</span>';
+            } else if (data.status === 'reserved') {
+                // Check if pending no-show
+                isPendingNoShow = this.isNoShow(data.sta, currentTime);
+                rowClass = isPendingNoShow ? 'noshow-row' : '';
+                statusDisplay = isPendingNoShow ? 
+                    '<span class="status-badge status-pending-noshow">No-Show (Pending)</span>' : 
+                    '<span class="status-badge status-reserved">Reserved</span>';
+            }
+            
+            const focBadge = data.foc ? '<span class="foc-badge">FOC</span>' : '';
+            
+            const isSelected = this.selectedCheckinReservations.has(doc.id);
+            
+            // Different actions based on status
+            let actionButtons = '';
+            
+            if (data.status === 'no-show') {
+                // For no-show guests, show reopen options
+                actionButtons = `
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-primary" onclick="app.openReopenModal('${doc.id}')">
+                            <i class="fas fa-undo me-1"></i> Reopen
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                // For reserved guests (including pending no-shows)
+                actionButtons = `
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-success" onclick="app.openQuickCheckinModal('${doc.id}')">
+                            <i class="fas fa-sign-in-alt"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        ${isPendingNoShow ? `
+                        <button class="btn btn-sm btn-danger" onclick="app.markNoShow('${doc.id}')">
+                            <i class="fas fa-user-times"></i>
+                        </button>
+                        ` : ''}
+                    </div>
                 `;
             }
-        }
+            
+            const row = `
+                <tr class="${rowClass}">
+                    <td>
+                        <input type="checkbox" class="bulk-checkbox" value="${doc.id}" 
+                               ${isSelected ? 'checked' : ''}
+                               onchange="app.toggleCheckinSelection('${doc.id}')">
+                    </td>
+                    <td>${data.guestName}</td>
+                    <td>${data.customer}</td>
+                    <td>${data.flightHotel}</td>
+                    <td>${data.sta}</td>
+                    <td>${data.direction}</td>
+                    <td>${focBadge}</td>
+                    <td>${statusDisplay}</td>
+                    <td>
+                        ${actionButtons}
+                    </td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+        
+        // ... rest of the function ...
+    } catch (error) {
+        console.error('Error loading check-in data:', error);
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center text-danger">
+                    Error loading data. Please try again.
+                </td>
+            </tr>
+        `;
+    }
+}
 
         isNoShow(staTime, currentTime) {
             if (!staTime) return false;
             
-            try {
-                // Parse STA time
-                const [staHours, staMinutes] = staTime.split(':').map(Number);
-                
-                // Parse current time
-                const [currentHours, currentMinutes] = currentTime.split(':').map(Number);
-                
-                // Calculate total minutes
-                const staTotalMinutes = staHours * 60 + staMinutes;
-                const currentTotalMinutes = currentHours * 60 + currentMinutes;
-                
-                // Consider as no-show if current time is 30 minutes past STA
-                return (currentTotalMinutes - staTotalMinutes) > 30;
-            } catch (error) {
-                console.error('Error checking no-show:', error);
-                return false;
-            }
+            const staDate = new Date();
+            const [staHours, staMinutes] = staTime.split(':').map(Number);
+            staDate.setHours(staHours, staMinutes, 0, 0);
+            
+            const currentDate = new Date();
+            const [currentHours, currentMinutes] = currentTime.split(':').map(Number);
+            currentDate.setHours(currentHours, currentMinutes, 0, 0);
+            
+            // Consider as no-show if current time is 30 minutes past STA
+            staDate.setMinutes(staDate.getMinutes() + 30);
+            
+            return currentDate > staDate;
         }
 
         async autoMarkNoShows() {
@@ -3415,7 +3507,7 @@
                     
                     // Apply date filter
                     if (fromDate && toDate) {
-                        const checkDate = data.reservationDate || data.checkinDate || data.checkoutDate;
+                        const checkDate = data.checkoutDate || data.checkinDate || data.reservationDate;
                         if (!checkDate) return;
                         
                         if (checkDate < fromDate || checkDate > toDate) {
@@ -3447,7 +3539,7 @@
                     return;
                 }
                 
-                this.displayUnifiedReport(reservations, 'Guest Report', 'general', fromDate, toDate);
+                this.displayReport(reservations, fromDate, toDate);
             } catch (error) {
                 console.error('Error generating report:', error);
                 alert('Error generating report. Please try again.');
@@ -3507,7 +3599,7 @@
                     return;
                 }
                 
-                this.displayUnifiedReport(reservations, 'No-Show Report', 'no-show', fromDate, toDate);
+                this.displayNoShowReport(reservations, fromDate, toDate);
             } catch (error) {
                 console.error('Error generating no-show report:', error);
                 alert('Error generating no-show report. Please try again.');
@@ -3545,7 +3637,7 @@
                     
                     // Apply date filter
                     if (fromDate && toDate) {
-                        const checkDate = data.reservationDate || data.checkinDate || data.checkoutDate;
+                        const checkDate = data.checkoutDate || data.checkinDate || data.reservationDate;
                         if (!checkDate) return;
                         
                         if (checkDate < fromDate || checkDate > toDate) {
@@ -3567,14 +3659,14 @@
                     return;
                 }
                 
-                this.displayUnifiedReport(reservations, 'FOC Report', 'foc', fromDate, toDate);
+                this.displayFOCReport(reservations, fromDate, toDate);
             } catch (error) {
                 console.error('Error generating FOC report:', error);
                 alert('Error generating FOC report. Please try again.');
             }
         }
 
-        displayUnifiedReport(reservations, title, type, fromDate, toDate) {
+        displayReport(reservations, fromDate, toDate) {
             const printWindow = window.open('', '_blank');
             
             const currentDate = new Date().toLocaleDateString('en-US', {
@@ -3604,7 +3696,7 @@
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>${title} - Vilu Lounge</title>
+                    <title>Guest Report - Vilu Lounge</title>
                     <style>
                         @media print {
                             @page {
@@ -3650,13 +3742,6 @@
                             .company-address {
                                 font-size: 10px;
                                 margin: 0 0 2px 0;
-                            }
-                            .report-title {
-                                text-align: center;
-                                font-size: 14px;
-                                font-weight: bold;
-                                margin: 10px 0;
-                                color: #2c5282;
                             }
                             .report-details {
                                 margin-top: 15px;
@@ -3789,13 +3874,6 @@
                                 font-size: 11px;
                                 margin: 0 0 2px 0;
                             }
-                            .report-title {
-                                text-align: center;
-                                font-size: 16px;
-                                font-weight: bold;
-                                margin: 15px 0;
-                                color: #2c5282;
-                            }
                             .report-details {
                                 margin-top: 15px;
                                 padding-top: 12px;
@@ -3899,8 +3977,6 @@
                                 </div>
                             </div>
                             
-                            <div class="report-title">${title}</div>
-                            
                             <div class="report-details">
                                 <div class="detail-row">
                                     <div class="detail-label">Report Date:</div>
@@ -3997,11 +4073,846 @@
                             
                             <div class="signature-section" style="float: right;">
                                 <div class="detail-row">
-                                    <div class="detail-label">${type === 'foc' ? 'Approved by' : 'Checked by'}:</div>
+                                    <div class="detail-label">Checked by:</div>
                                     <div class="detail-value">_____________________</div>
                                 </div>
                                 <div class="detail-row">
                                     <div class="detail-label">RC No:</div>
+                                    <div class="detail-value">_____________________</div>
+                                </div>
+                                <div class="signature-line">Signature</div>
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        
+                        <!-- Print Buttons (only for screen) -->
+                        <div class="print-buttons no-print">
+                            <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                                Print Report
+                            </button>
+                            <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Close Window
+                            </button>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(reportHTML);
+            printWindow.document.close();
+            printWindow.focus();
+        }
+
+        displayNoShowReport(reservations, fromDate, toDate) {
+            const printWindow = window.open('', '_blank');
+            
+            const currentDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            let reportHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>No-Show Report - Vilu Lounge</title>
+                    <style>
+                        @media print {
+                            @page {
+                                size: A4;
+                                margin: 15mm;
+                            }
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 11px;
+                                color: #000;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .report-container {
+                                width: 100%;
+                            }
+                            .header {
+                                margin-bottom: 20px;
+                                padding-bottom: 15px;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            .logo-address-section {
+                                width: 100%;
+                                margin-bottom: 15px;
+                            }
+                            .company-logo {
+                                width: 100px;
+                                height: auto;
+                                margin-bottom: 10px;
+                                display: block;
+                            }
+                            .company-info {
+                                text-align: left;
+                                font-size: 11px;
+                                line-height: 1.3;
+                            }
+                            .company-name {
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin: 0 0 3px 0;
+                                color: #2c5282;
+                            }
+                            .company-address {
+                                font-size: 10px;
+                                margin: 0 0 2px 0;
+                            }
+                            .report-title {
+                                text-align: center;
+                                font-size: 14px;
+                                font-weight: bold;
+                                margin: 10px 0;
+                                color: #742a2a;
+                            }
+                            .report-details {
+                                margin-top: 15px;
+                                padding-top: 10px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .detail-row {
+                                display: flex;
+                                margin-bottom: 4px;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                width: 100px;
+                            }
+                            .detail-value {
+                                flex: 1;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 10px 0 15px 0;
+                                page-break-inside: avoid;
+                            }
+                            th {
+                                background-color: #fed7d7;
+                                color: #742a2a;
+                                padding: 6px 4px;
+                                text-align: left;
+                                border: 1px solid #ddd;
+                                font-size: 10px;
+                                font-weight: bold;
+                            }
+                            td {
+                                padding: 5px 4px;
+                                border: 1px solid #ddd;
+                                font-size: 10px;
+                            }
+                            .customer-section {
+                                margin-bottom: 20px;
+                                page-break-inside: avoid;
+                            }
+                            .customer-name {
+                                background-color: #fed7d7;
+                                padding: 6px 10px;
+                                font-weight: bold;
+                                margin-bottom: 8px;
+                                font-size: 12px;
+                                border-left: 3px solid #f56565;
+                                color: #742a2a;
+                            }
+                            .footer {
+                                margin-top: 30px;
+                                page-break-inside: avoid;
+                                padding-top: 15px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .signature-section {
+                                width: 45%;
+                                display: inline-block;
+                                vertical-align: top;
+                            }
+                            .signature-line {
+                                margin-top: 30px;
+                                border-top: 1px solid #000;
+                                width: 180px;
+                                padding-top: 4px;
+                                font-size: 10px;
+                            }
+                            .no-print {
+                                display: none;
+                            }
+                        }
+                        @media screen {
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 12px;
+                                padding: 20px;
+                                background: #f5f5f5;
+                            }
+                            .report-container {
+                                max-width: 210mm;
+                                margin: 0 auto;
+                                background: white;
+                                padding: 20px;
+                                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                            }
+                            .header {
+                                margin-bottom: 20px;
+                                padding-bottom: 20px;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            .logo-address-section {
+                                width: 100%;
+                                margin-bottom: 15px;
+                            }
+                            .company-logo {
+                                width: 120px;
+                                height: auto;
+                                margin-bottom: 10px;
+                                display: block;
+                            }
+                            .company-info {
+                                text-align: left;
+                                font-size: 12px;
+                                line-height: 1.4;
+                            }
+                            .company-name {
+                                font-size: 18px;
+                                font-weight: bold;
+                                margin: 0 0 5px 0;
+                                color: #2c5282;
+                            }
+                            .company-address {
+                                font-size: 11px;
+                                margin: 0 0 2px 0;
+                            }
+                            .report-title {
+                                text-align: center;
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin: 15px 0;
+                                color: #742a2a;
+                            }
+                            .report-details {
+                                margin-top: 15px;
+                                padding-top: 12px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .detail-row {
+                                display: flex;
+                                margin-bottom: 5px;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                width: 120px;
+                            }
+                            .detail-value {
+                                flex: 1;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 15px 0 20px 0;
+                            }
+                            th {
+                                background-color: #fed7d7;
+                                color: #742a2a;
+                                padding: 8px;
+                                text-align: left;
+                                border: 1px solid #ddd;
+                            }
+                            td {
+                                padding: 7px;
+                                border: 1px solid #ddd;
+                            }
+                            .customer-section {
+                                margin-bottom: 25px;
+                            }
+                            .customer-name {
+                                background-color: #fed7d7;
+                                padding: 8px 12px;
+                                font-weight: bold;
+                                margin-bottom: 10px;
+                                font-size: 13px;
+                                border-left: 4px solid #f56565;
+                                color: #742a2a;
+                            }
+                            .footer {
+                                margin-top: 40px;
+                                padding-top: 20px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .signature-section {
+                                width: 45%;
+                                display: inline-block;
+                                vertical-align: top;
+                            }
+                            .signature-line {
+                                margin-top: 40px;
+                                border-top: 1px solid #000;
+                                width: 200px;
+                                padding-top: 5px;
+                            }
+                            .print-buttons {
+                                text-align: center;
+                                margin-top: 20px;
+                                padding: 20px;
+                                background: #f8f9fa;
+                                border-radius: 5px;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="report-container">
+                        <!-- Header -->
+                        <div class="header">
+                            <div class="logo-address-section">
+                                <img src="macl.png" alt="MACL Logo" class="company-logo">
+                                <div class="company-info">
+                                    <div class="company-name">Vilu Business Lounge</div>
+                                    <div class="company-address">Seaplane Terminal</div>
+                                    <div class="company-address">Velana International Airport</div>
+                                    <div class="company-address">Hulhule: 22000</div>
+                                    <div class="company-address">Republic of Maldives</div>
+                                    <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
+                                    <div class="company-address">W: www.macl.aero / E: vilu.lounge@macl.aero</div>
+                                </div>
+                            </div>
+                            
+                            <div class="report-title">NO-SHOW REPORT</div>
+                            
+                            <div class="report-details">
+                                <div class="detail-row">
+                                    <div class="detail-label">Report Date:</div>
+                                    <div class="detail-value">${currentDate}</div>
+                                </div>
+                                ${fromDate && toDate ? `
+                                <div class="detail-row">
+                                    <div class="detail-label">Period:</div>
+                                    <div class="detail-value">${fromDate} to ${toDate}</div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-row">
+                                    <div class="detail-label">Total No-Shows:</div>
+                                    <div class="detail-value">${reservations.length}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Content -->
+            `;
+            
+            // Group by customer
+            const reservationsByCustomer = {};
+            reservations.forEach(res => {
+                if (!reservationsByCustomer[res.customer]) {
+                    reservationsByCustomer[res.customer] = [];
+                }
+                reservationsByCustomer[res.customer].push(res);
+            });
+            
+            Object.entries(reservationsByCustomer).forEach(([customer, customerReservations]) => {
+                reportHTML += `
+                    <div class="customer-section">
+                        <div class="customer-name">Customer: ${customer} (${customerReservations.length} no-shows)</div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Guest Name</th>
+                                    <th>Flight/Hotel</th>
+                                    <th>STA/ETA</th>
+                                    <th>Direction</th>
+                                    <th>Nationality</th>
+                                    <th>Reservation Date</th>
+                                    <th>No-Show Reason</th>
+                                    <th>Marked By</th>
+                                    <th>FOC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                customerReservations.forEach(res => {
+                    const focBadge = res.foc ? '<span style="background-color: #9ae6b4; color: #22543d; padding: 1px 5px; border-radius: 8px; font-size: 9px;">FOC</span>' : '';
+                    
+                    reportHTML += `
+                        <tr>
+                            <td>${res.guestName}</td>
+                            <td>${res.flightHotel}</td>
+                            <td>${res.sta}</td>
+                            <td>${res.direction}</td>
+                            <td>${res.nationality}</td>
+                            <td>${res.reservationDate}</td>
+                            <td>${res.noShowReason || 'Not specified'}</td>
+                            <td>${res.noShowMarkedBy || 'System'}</td>
+                            <td>${focBadge}</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            reportHTML += `
+                        <!-- Footer Signatures -->
+                        <div class="footer">
+                            <div class="signature-section">
+                                <div class="detail-row">
+                                    <div class="detail-label">Prepared by:</div>
+                                    <div class="detail-value">${this.currentUser.name}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">RC No:</div>
+                                    <div class="detail-value">${this.currentUser.RCNo}</div>
+                                </div>
+                                <div class="signature-line">Signature</div>
+                            </div>
+                            
+                            <div class="signature-section" style="float: right;">
+                                <div class="detail-row">
+                                    <div class="detail-label">Checked by:</div>
+                                    <div class="detail-value">_____________________</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">RC No:</div>
+                                    <div class="detail-value">_____________________</div>
+                                </div>
+                                <div class="signature-line">Signature</div>
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        
+                        <!-- Print Buttons (only for screen) -->
+                        <div class="print-buttons no-print">
+                            <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                                Print Report
+                            </button>
+                            <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Close Window
+                            </button>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(reportHTML);
+            printWindow.document.close();
+            printWindow.focus();
+        }
+
+        displayFOCReport(reservations, fromDate, toDate) {
+            const printWindow = window.open('', '_blank');
+            
+            const currentDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            let reportHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>FOC Report - Vilu Lounge</title>
+                    <style>
+                        @media print {
+                            @page {
+                                size: A4;
+                                margin: 15mm;
+                            }
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 11px;
+                                color: #000;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .report-container {
+                                width: 100%;
+                            }
+                            .header {
+                                margin-bottom: 20px;
+                                padding-bottom: 15px;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            .logo-address-section {
+                                width: 100%;
+                                margin-bottom: 15px;
+                            }
+                            .company-logo {
+                                width: 100px;
+                                height: auto;
+                                margin-bottom: 10px;
+                                display: block;
+                            }
+                            .company-info {
+                                text-align: left;
+                                font-size: 11px;
+                                line-height: 1.3;
+                            }
+                            .company-name {
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin: 0 0 3px 0;
+                                color: #2c5282;
+                            }
+                            .company-address {
+                                font-size: 10px;
+                                margin: 0 0 2px 0;
+                            }
+                            .report-title {
+                                text-align: center;
+                                font-size: 14px;
+                                font-weight: bold;
+                                margin: 10px 0;
+                                color: #22543d;
+                            }
+                            .report-details {
+                                margin-top: 15px;
+                                padding-top: 10px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .detail-row {
+                                display: flex;
+                                margin-bottom: 4px;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                width: 100px;
+                            }
+                            .detail-value {
+                                flex: 1;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 10px 0 15px 0;
+                                page-break-inside: avoid;
+                            }
+                            th {
+                                background-color: #c6f6d5;
+                                color: #22543d;
+                                padding: 6px 4px;
+                                text-align: left;
+                                border: 1px solid #ddd;
+                                font-size: 10px;
+                                font-weight: bold;
+                            }
+                            td {
+                                padding: 5px 4px;
+                                border: 1px solid #ddd;
+                                font-size: 10px;
+                            }
+                            .customer-section {
+                                margin-bottom: 20px;
+                                page-break-inside: avoid;
+                            }
+                            .customer-name {
+                                background-color: #c6f6d5;
+                                padding: 6px 10px;
+                                font-weight: bold;
+                                margin-bottom: 8px;
+                                font-size: 12px;
+                                border-left: 3px solid #48bb78;
+                                color: #22543d;
+                            }
+                            .footer {
+                                margin-top: 30px;
+                                page-break-inside: avoid;
+                                padding-top: 15px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .signature-section {
+                                width: 45%;
+                                display: inline-block;
+                                vertical-align: top;
+                            }
+                            .signature-line {
+                                margin-top: 30px;
+                                border-top: 1px solid #000;
+                                width: 180px;
+                                padding-top: 4px;
+                                font-size: 10px;
+                            }
+                            .no-print {
+                                display: none;
+                            }
+                            .status-badge {
+                                font-size: 9px;
+                                padding: 2px 6px;
+                                border-radius: 10px;
+                                display: inline-block;
+                            }
+                            .status-reserved { background-color: #feebc8; color: #9c4221; }
+                            .status-checkedin { background-color: #bee3f8; color: #2a4365; }
+                            .status-checkedout { background-color: #bee3f8; color: #2a4365; }
+                            .status-noshow { background-color: #fed7d7; color: #742a2a; }
+                        }
+                        @media screen {
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 12px;
+                                padding: 20px;
+                                background: #f5f5f5;
+                            }
+                            .report-container {
+                                max-width: 210mm;
+                                margin: 0 auto;
+                                background: white;
+                                padding: 20px;
+                                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                            }
+                            .header {
+                                margin-bottom: 20px;
+                                padding-bottom: 20px;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            .logo-address-section {
+                                width: 100%;
+                                margin-bottom: 15px;
+                            }
+                            .company-logo {
+                                width: 120px;
+                                height: auto;
+                                margin-bottom: 10px;
+                                display: block;
+                            }
+                            .company-info {
+                                text-align: left;
+                                font-size: 12px;
+                                line-height: 1.4;
+                            }
+                            .company-name {
+                                font-size: 18px;
+                                font-weight: bold;
+                                margin: 0 0 5px 0;
+                                color: #2c5282;
+                            }
+                            .company-address {
+                                font-size: 11px;
+                                margin: 0 0 2px 0;
+                            }
+                            .report-title {
+                                text-align: center;
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin: 15px 0;
+                                color: #22543d;
+                            }
+                            .report-details {
+                                margin-top: 15px;
+                                padding-top: 12px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .detail-row {
+                                display: flex;
+                                margin-bottom: 5px;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                width: 120px;
+                            }
+                            .detail-value {
+                                flex: 1;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 15px 0 20px 0;
+                            }
+                            th {
+                                background-color: #c6f6d5;
+                                color: #22543d;
+                                padding: 8px;
+                                text-align: left;
+                                border: 1px solid #ddd;
+                            }
+                            td {
+                                padding: 7px;
+                                border: 1px solid #ddd;
+                            }
+                            .customer-section {
+                                margin-bottom: 25px;
+                            }
+                            .customer-name {
+                                background-color: #c6f6d5;
+                                padding: 8px 12px;
+                                font-weight: bold;
+                                margin-bottom: 10px;
+                                font-size: 13px;
+                                border-left: 4px solid #48bb78;
+                                color: #22543d;
+                            }
+                            .footer {
+                                margin-top: 40px;
+                                padding-top: 20px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .signature-section {
+                                width: 45%;
+                                display: inline-block;
+                                vertical-align: top;
+                            }
+                            .signature-line {
+                                margin-top: 40px;
+                                border-top: 1px solid #000;
+                                width: 200px;
+                                padding-top: 5px;
+                            }
+                            .print-buttons {
+                                text-align: center;
+                                margin-top: 20px;
+                                padding: 20px;
+                                background: #f8f9fa;
+                                border-radius: 5px;
+                            }
+                            .status-badge {
+                                font-size: 10px;
+                                padding: 3px 8px;
+                                border-radius: 12px;
+                                display: inline-block;
+                            }
+                            .status-reserved { background-color: #feebc8; color: #9c4221; }
+                            .status-checkedin { background-color: #bee3f8; color: #2a4365; }
+                            .status-checkedout { background-color: #bee3f8; color: #2a4365; }
+                            .status-noshow { background-color: #fed7d7; color: #742a2a; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="report-container">
+                        <!-- Header -->
+                        <div class="header">
+                            <div class="logo-address-section">
+                                <img src="macl.png" alt="MACL Logo" class="company-logo">
+                                <div class="company-info">
+                                    <div class="company-name">Vilu Business Lounge</div>
+                                    <div class="company-address">Seaplane Terminal</div>
+                                    <div class="company-address">Velana International Airport</div>
+                                    <div class="company-address">Hulhule: 22000</div>
+                                    <div class="company-address">Republic of Maldives</div>
+                                    <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
+                                    <div class="company-address">W: www.macl.aero / E: vilu.lounge@macl.aero</div>
+                                </div>
+                            </div>
+                            
+                            <div class="report-title">FREE OF CHARGE (FOC) REPORT</div>
+                            
+                            <div class="report-details">
+                                <div class="detail-row">
+                                    <div class="detail-label">Report Date:</div>
+                                    <div class="detail-value">${currentDate}</div>
+                                </div>
+                                ${fromDate && toDate ? `
+                                <div class="detail-row">
+                                    <div class="detail-label">Period:</div>
+                                    <div class="detail-value">${fromDate} to ${toDate}</div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-row">
+                                    <div class="detail-label">Total FOC Guests:</div>
+                                    <div class="detail-value">${reservations.length}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Content -->
+            `;
+            
+            // Group by customer
+            const reservationsByCustomer = {};
+            reservations.forEach(res => {
+                if (!reservationsByCustomer[res.customer]) {
+                    reservationsByCustomer[res.customer] = [];
+                }
+                reservationsByCustomer[res.customer].push(res);
+            });
+            
+            Object.entries(reservationsByCustomer).forEach(([customer, customerReservations]) => {
+                reportHTML += `
+                    <div class="customer-section">
+                        <div class="customer-name">Customer: ${customer} (${customerReservations.length} FOC guests)</div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Guest Name</th>
+                                    <th>Flight/Hotel</th>
+                                    <th>STA/ETA</th>
+                                    <th>Direction</th>
+                                    <th>Nationality</th>
+                                    <th>Reservation Date</th>
+                                    <th>Check-In</th>
+                                    <th>Check-Out</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                customerReservations.forEach(res => {
+                    let statusBadge = '';
+                    if (res.status === 'checked-in') {
+                        statusBadge = '<span class="status-badge status-checkedin">Checked-In</span>';
+                    } else if (res.status === 'checked-out') {
+                        statusBadge = '<span class="status-badge status-checkedout">Checked-Out</span>';
+                    } else if (res.status === 'no-show') {
+                        statusBadge = '<span class="status-badge status-noshow">No-Show</span>';
+                    } else {
+                        statusBadge = '<span class="status-badge status-reserved">Reserved</span>';
+                    }
+                    
+                    reportHTML += `
+                        <tr>
+                            <td>${res.guestName}</td>
+                            <td>${res.flightHotel}</td>
+                            <td>${res.sta}</td>
+                            <td>${res.direction}</td>
+                            <td>${res.nationality}</td>
+                            <td>${res.reservationDate}</td>
+                            <td>${res.checkinTime || '-'}</td>
+                            <td>${res.checkoutTime || '-'}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            reportHTML += `
+                        <!-- Footer Signatures -->
+                        <div class="footer">
+                            <div class="signature-section">
+                                <div class="detail-row">
+                                    <div class="detail-label">Prepared by:</div>
+                                    <div class="detail-value">${this.currentUser.name}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">RC No:</div>
+                                    <div class="detail-value">${this.currentUser.RCNo}</div>
+                                </div>
+                                <div class="signature-line">Signature</div>
+                            </div>
+                            
+                            <div class="signature-section" style="float: right;">
+                                <div class="detail-row">
+                                    <div class="detail-label">Approved by:</div>
+                                    <div class="detail-value">_____________________</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Designation:</div>
                                     <div class="detail-value">_____________________</div>
                                 </div>
                                 <div class="signature-line">Signature</div>
@@ -4050,7 +4961,7 @@
                 const snapshot = await this.db.collection('reservations').get();
                 const reservations = [];
                 
-                // Get checked-in and checked-out reservations only (non-FOC)
+                // Get checked-in reservations only (non-FOC)
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     
@@ -4598,42 +5509,77 @@
         }
 
         processExcelData(data) {
-            console.log('Processing Excel data (original format):', data);
+            console.log('Processing Excel data:', data);
             
             const reservations = [];
             const today = new Date().toISOString().split('T')[0];
             
-            // Process each row
-            for (let i = 0; i < data.length; i++) {
+            // Find header row
+            let headerRowIndex = -1;
+            for (let i = 0; i < Math.min(10, data.length); i++) {
+                const row = data[i];
+                if (row && row.length > 0) {
+                    const firstCell = row[0] ? row[0].toString().toLowerCase() : '';
+                    if (firstCell.includes('guest') || firstCell.includes('name')) {
+                        headerRowIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            if (headerRowIndex === -1) {
+                // Assume first row is header
+                headerRowIndex = 0;
+            }
+            
+            // Map column indices
+            const headers = data[headerRowIndex];
+            const columnMap = {
+                guestName: this.findColumnIndex(headers, ['guest', 'name', 'guest name']),
+                customer: this.findColumnIndex(headers, ['customer', 'company', 'airline']),
+                flightHotel: this.findColumnIndex(headers, ['flight', 'hotel', 'flight/hotel', 'flight no']),
+                sta: this.findColumnIndex(headers, ['sta', 'eta', 'time', 'flight time']),
+                direction: this.findColumnIndex(headers, ['direction', 'type', 'arrival/departure']),
+                nationality: this.findColumnIndex(headers, ['nationality', 'country', 'passport country']),
+                reservationDate: this.findColumnIndex(headers, ['date', 'reservation date', 'flight date']),
+                foc: this.findColumnIndex(headers, ['foc', 'free', 'charge', 'free of charge'])
+            };
+            
+            console.log('Column map:', columnMap);
+            
+            // Process data rows
+            for (let i = headerRowIndex + 1; i < data.length; i++) {
                 const row = data[i];
                 if (!row || row.length === 0) continue;
                 
-                // Original format columns (simplified version):
-                // 0: Guest Name, 1: Customer, 2: Flight/Hotel, 3: STA/ETA, 
-                // 4: Direction, 5: Nationality, 6: Reservation Date, 7: FOC
+                const guestName = columnMap.guestName !== -1 ? row[columnMap.guestName] : '';
+                if (!guestName || guestName.toString().trim() === '') continue;
                 
-                const guestName = row[0] ? row[0].toString().trim() : '';
-                if (!guestName || guestName === '') continue;
+                const customer = columnMap.customer !== -1 ? row[columnMap.customer] : 'Unknown Customer';
+                const flightHotel = columnMap.flightHotel !== -1 ? row[columnMap.flightHotel] : 'Unknown Flight';
+                const rawTime = columnMap.sta !== -1 ? row[columnMap.sta] : '';
+                const rawDate = columnMap.reservationDate !== -1 ? row[columnMap.reservationDate] : today;
+                const direction = columnMap.direction !== -1 ? row[columnMap.direction] : 'Arrival';
+                const nationality = columnMap.nationality !== -1 ? row[columnMap.nationality] : '';
+                const rawFOC = columnMap.foc !== -1 ? row[columnMap.foc] : '';
                 
-                const customer = row[1] ? row[1].toString().trim() : 'Unknown Customer';
-                const flightHotel = row[2] ? row[2].toString().trim() : 'Unknown Flight';
-                const sta = this.parseSimpleTime(row[3] || '00:00');
-                const direction = row[4] ? row[4].toString().trim() : 'Arrival';
-                const nationality = row[5] ? row[5].toString().trim() : '';
-                const reservationDate = this.parseSimpleDate(row[6]) || today;
-                const focText = row[7] ? row[7].toString().trim().toLowerCase() : 'no';
-                const foc = focText === 'yes' || focText === 'true' || focText === 'foc';
+                const parsedDate = this.parseDate(rawDate || today);
+                const parsedTime = this.parseTime(rawTime || '00:00');
+                const isFOC = rawFOC ? rawFOC.toString().toLowerCase().includes('foc') || 
+                    rawFOC.toString().toLowerCase().includes('free') || 
+                    rawFOC.toString().toLowerCase() === 'true' || 
+                    rawFOC.toString().toLowerCase() === 'yes' : false;
                 
                 const reservation = {
-                    customer,
-                    reservationDate,
-                    flightHotel,
-                    sta,
-                    direction,
-                    guestName,
-                    nationality,
-                    foc,
-                    remarks: 'Imported from Excel',
+                    customer: customer.toString().trim(),
+                    reservationDate: parsedDate,
+                    flightHotel: flightHotel.toString().trim(),
+                    sta: parsedTime,
+                    direction: direction.toString().trim(),
+                    guestName: guestName.toString().trim(),
+                    nationality: nationality.toString().trim(),
+                    foc: isFOC,
+                    remarks: `Imported from Excel`,
                     status: 'reserved',
                     createdAt: new Date().toISOString(),
                     createdBy: this.currentUser.username,
@@ -4653,15 +5599,26 @@
             return reservations;
         }
 
-        parseSimpleTime(timeValue) {
+        findColumnIndex(headers, searchTerms) {
+            if (!headers) return -1;
+            
+            for (let i = 0; i < headers.length; i++) {
+                const header = headers[i] ? headers[i].toString().toLowerCase() : '';
+                for (const term of searchTerms) {
+                    if (header.includes(term.toLowerCase())) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        parseTime(timeValue) {
             if (!timeValue && timeValue !== 0) return '00:00';
             
             let timeStr = timeValue.toString().trim();
             
-            // Remove any non-numeric characters except colon and AM/PM
-            timeStr = timeStr.replace(/[^0-9:apm\s]/gi, '');
-            
-            // Try to parse as Excel numeric time
+            // Handle Excel numeric time (fraction of day)
             if (!isNaN(timeValue) && timeValue < 1) {
                 const totalSeconds = timeValue * 24 * 60 * 60;
                 const hours = Math.floor(totalSeconds / 3600);
@@ -4669,46 +5626,91 @@
                 return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
             }
             
-            // Try common time formats
-            const timeRegex = /(\d{1,2}):?(\d{2})?\s*(AM|PM)?/i;
-            const match = timeStr.match(timeRegex);
+            timeStr = timeStr.replace(/hrs?/gi, '').trim();
             
-            if (match) {
-                let hours = parseInt(match[1]) || 0;
-                let minutes = parseInt(match[2]) || 0;
-                const period = match[3] ? match[3].toUpperCase() : '';
+            if (!isNaN(timeStr) && timeStr.length >= 3 && timeStr.length <= 4) {
+                const num = parseInt(timeStr);
+                let hours, minutes;
                 
-                // Convert to 24-hour format
-                if (period === 'PM' && hours < 12) hours += 12;
-                if (period === 'AM' && hours === 12) hours = 0;
+                if (timeStr.length === 3) {
+                    hours = Math.floor(num / 100);
+                    minutes = num % 100;
+                } else {
+                    hours = Math.floor(num / 100);
+                    minutes = num % 100;
+                }
                 
-                // Ensure valid ranges
-                hours = Math.min(Math.max(hours, 0), 23);
-                minutes = Math.min(Math.max(minutes, 0), 59);
-                
+                if (hours >= 0 && hours <= 24 && minutes >= 0 && minutes <= 59) {
+                    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                }
+            }
+            
+            timeStr = timeStr.replace(/\s+/g, '').toUpperCase();
+            
+            const patterns = [
+                /^(\d{1,2})[:.](\d{2})\s*(AM|PM)?$/i,
+                /^(\d{3,4})\s*(AM|PM)?$/i,
+                /^(\d{1,2})\s*(AM|PM)?$/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = timeStr.match(pattern);
+                if (match) {
+                    let hours = parseInt(match[1]);
+                    let minutes = match[2] ? parseInt(match[2]) : 0;
+                    const period = match[3] ? match[3].toUpperCase() : '';
+                    
+                    if (period === 'PM' && hours < 12) hours += 12;
+                    if (period === 'AM' && hours === 12) hours = 0;
+                    
+                    if (!period && hours < 24 && match[1].length >= 3) {
+                        if (match[1].length === 3) {
+                            hours = Math.floor(hours / 10);
+                            minutes = hours % 10 * 10 + minutes;
+                        } else if (match[1].length === 4) {
+                            minutes = hours % 100;
+                            hours = Math.floor(hours / 100);
+                        }
+                    }
+                    
+                    if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+                        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                    }
+                }
+            }
+            
+            const date = new Date(timeValue);
+            if (!isNaN(date.getTime())) {
+                const hours = date.getHours();
+                const minutes = date.getMinutes();
                 return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
             }
             
+            console.warn('Could not parse time:', timeValue);
             return '00:00';
         }
 
-        parseSimpleDate(dateValue) {
+        parseDate(dateValue) {
             if (!dateValue) return new Date().toISOString().split('T')[0];
             
             let dateStr = dateValue.toString().trim();
             
-            // Try Excel serial date
             if (!isNaN(dateValue) && dateValue > 25569) {
                 const excelDate = new Date((dateValue - 25569) * 86400 * 1000);
                 return excelDate.toISOString().split('T')[0];
             }
             
-            // Try common date formats
+            if (dateStr.includes(' ')) {
+                dateStr = dateStr.split(' ')[0];
+            }
+            
             const dateFormats = [
                 /^(\d{4})-(\d{1,2})-(\d{1,2})$/,
                 /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
                 /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
                 /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/,
+                /^(\d{4})(\d{2})(\d{2})$/,
+                /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/,
             ];
             
             for (const format of dateFormats) {
@@ -4716,23 +5718,37 @@
                 if (match) {
                     let year, month, day;
                     
-                    if (format.source.startsWith('^\\d{4}')) {
-                        year = parseInt(match[1]);
-                        month = parseInt(match[2]) - 1;
-                        day = parseInt(match[3]);
-                    } else {
-                        day = parseInt(match[1]);
-                        month = parseInt(match[2]) - 1;
-                        year = parseInt(match[3]);
-                    }
-                    
-                    const date = new Date(year, month, day);
-                    if (!isNaN(date.getTime())) {
-                        return date.toISOString().split('T')[0];
+                    if (format.source.includes('YYYY') || format.source.includes('YY')) {
+                        if (format.source.startsWith('^\\d{4}')) {
+                            year = parseInt(match[1]);
+                            month = parseInt(match[2]) - 1;
+                            day = parseInt(match[3]);
+                        } else {
+                            if (match[3].length === 4) {
+                                year = parseInt(match[3]);
+                                month = parseInt(match[1]) - 1;
+                                day = parseInt(match[2]);
+                            } else {
+                                year = 2000 + parseInt(match[3]);
+                                month = parseInt(match[1]) - 1;
+                                day = parseInt(match[2]);
+                            }
+                        }
+                        
+                        const date = new Date(year, month, day);
+                        if (!isNaN(date.getTime())) {
+                            return date.toISOString().split('T')[0];
+                        }
                     }
                 }
             }
             
+            const date = new Date(dateStr);
+            if (!isNaN(date.getTime())) {
+                return date.toISOString().split('T')[0];
+            }
+            
+            console.warn('Could not parse date:', dateValue);
             return new Date().toISOString().split('T')[0];
         }
 
@@ -4905,17 +5921,15 @@
 
         downloadExcelTemplate() {
             const templateData = [
-                ['Guest Name', 'Customer', 'Flight/Hotel', 'STA/ETA', 'Direction', 'Nationality', 'Reservation Date', 'FOC'],
-                ['John Doe', 'Emirates', 'EK658', '14:30', 'Arrival', 'American', '2024-01-15', 'No'],
-                ['Jane Smith', 'Qatar Airways', 'QR672', '18:45', 'Departure', 'British', '2024-01-15', 'Yes'],
-                ['Ali Khan', 'Singapore Airlines', 'SQ432', '09:15', 'Transit', 'Singaporean', '2024-01-16', 'No'],
-                ['Maria Garcia', 'Etihad', 'EY234', '22:00', 'Local', 'Spanish', '2024-01-16', 'No'],
-                ['Chen Wei', 'Cathay Pacific', 'CX712', '07:20', 'Arrival', 'Chinese', '2024-01-17', 'Yes']
+                ['Guest Name', 'Customer', 'Flight/Hotel', 'STA/ETA', 'Direction', 'Nationality', 'Reservation Date', 'FOC (Yes/No)'],
+                ['John Smith', 'Emirates', 'EK658', '14:30', 'Arrival', 'British', '2024-01-15', 'No'],
+                ['Maria Garcia', 'Qatar Airways', 'QR672', '18:45', 'Departure', 'Spanish', '2024-01-15', 'Yes'],
+                ['Chen Wei', 'Singapore Airlines', 'SQ432', '09:15', 'Transit', 'Chinese', '2024-01-16', 'No'],
+                ['Anna Schmidt', 'Lufthansa', 'LH754', '22:00', 'Local', 'German', '2024-01-16', 'No']
             ];
             
             const ws = XLSX.utils.aoa_to_sheet(templateData);
             
-            // Set column widths
             const wscols = [
                 { wch: 20 }, // Guest Name
                 { wch: 15 }, // Customer
@@ -4924,27 +5938,15 @@
                 { wch: 12 }, // Direction
                 { wch: 15 }, // Nationality
                 { wch: 15 }, // Reservation Date
-                { wch: 8 }   // FOC
+                { wch: 10 }  // FOC
             ];
             ws['!cols'] = wscols;
-            
-            // Add some styling
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            for (let C = range.s.c; C <= range.e.c; ++C) {
-                const cell_address = XLSX.utils.encode_cell({ r: 0, c: C });
-                if (!ws[cell_address]) continue;
-                ws[cell_address].s = {
-                    font: { bold: true, color: { rgb: "FFFFFF" } },
-                    fill: { fgColor: { rgb: "4F81BD" } },
-                    alignment: { horizontal: "center" }
-                };
-            }
             
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Template');
             XLSX.writeFile(wb, 'Vilu_Lounge_Import_Template.xlsx');
             
-            alert('Excel template downloaded. Please use this exact format for importing data.');
+            alert('Excel template downloaded. Please fill in the data following the format.');
         }
 
         async exportToExcel() {
@@ -4979,7 +5981,7 @@
                     const data = doc.data();
                     
                     if (fromDate && toDate) {
-                        const checkDate = data.reservationDate || data.checkinDate || data.checkoutDate;
+                        const checkDate = data.checkoutDate || data.checkinDate || data.reservationDate;
                         if (!checkDate) return;
                         
                         if (checkDate < fromDate || checkDate > toDate) {
