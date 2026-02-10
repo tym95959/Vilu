@@ -18,6 +18,7 @@
             --dark-bg: #2d3748;
             --success-color: #48bb78;
             --warning-color: #ed8936;
+            --danger-color: #f56565;
             --info-color: #4299e1;
             --border-radius: 8px;
             --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -137,6 +138,12 @@
             border: 1px solid #90cdf4;
         }
         
+        .status-noshow { 
+            background-color: #fed7d7; 
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
         /* Filter section */
         .filter-section {
             background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
@@ -196,6 +203,10 @@
             background: linear-gradient(135deg, var(--warning-color) 0%, #dd6b20 100%);
         }
         
+        .card-header-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #c53030 100%);
+        }
+        
         /* Form styles */
         .form-label {
             font-weight: 600;
@@ -242,6 +253,11 @@
         .btn-warning {
             background-color: var(--warning-color);
             border-color: var(--warning-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
         }
         
         .btn-info {
@@ -336,6 +352,16 @@
         .btn-sm {
             padding: 5px 10px;
             font-size: 0.875rem;
+        }
+        
+        /* FOC Badge */
+        .foc-badge {
+            background-color: #9ae6b4;
+            color: #22543d;
+            font-size: 0.7em;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
         }
         
         /* Responsive adjustments */
@@ -557,6 +583,21 @@
             font-size: 0.85rem;
             opacity: 0.9;
         }
+        
+        /* FOC switch */
+        .form-switch .form-check-input {
+            width: 3em;
+            height: 1.5em;
+        }
+        
+        /* No-show highlight */
+        .noshow-row {
+            background-color: #fff5f5 !important;
+        }
+        
+        .noshow-row:hover {
+            background-color: #fed7d7 !important;
+        }
     </style>
 </head>
 <body>
@@ -652,7 +693,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#reportTab">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#reportTab">
                         <i class="fas fa-file-alt me-2"></i> Reports
                     </a>
                 </li>
@@ -740,15 +781,15 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card dashboard-card summary-card" style="border-left-color: var(--info-color);">
+                            <div class="card dashboard-card summary-card" style="border-left-color: var(--danger-color);">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center">
                                         <div class="me-3">
-                                            <i class="fas fa-user-clock summary-icon" style="color: var(--info-color);"></i>
+                                            <i class="fas fa-user-times summary-icon" style="color: var(--danger-color);"></i>
                                         </div>
                                         <div>
-                                            <div class="summary-value" id="overviewActive">0</div>
-                                            <div class="summary-label">Active Now</div>
+                                            <div class="summary-value" id="overviewNoShows">0</div>
+                                            <div class="summary-label">No-Shows</div>
                                         </div>
                                     </div>
                                 </div>
@@ -760,28 +801,40 @@
                     <div class="today-summary">
                         <h5><i class="fas fa-calendar-day me-2"></i> Today's Activity</h5>
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="today-stat">
                                     <div class="today-stat-value" id="todayReservations">0</div>
-                                    <div class="today-stat-label">New Reservations</div>
+                                    <div class="today-stat-label">Reservations</div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="today-stat">
                                     <div class="today-stat-value" id="todayCheckIns">0</div>
                                     <div class="today-stat-label">Check-Ins</div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="today-stat">
                                     <div class="today-stat-value" id="todayCheckOuts">0</div>
                                     <div class="today-stat-label">Check-Outs</div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="today-stat">
                                     <div class="today-stat-value" id="todayActive">0</div>
-                                    <div class="today-stat-label">Currently Active</div>
+                                    <div class="today-stat-label">Active</div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="today-stat">
+                                    <div class="today-stat-value" id="todayFOC">0</div>
+                                    <div class="today-stat-label">FOC</div>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="today-stat">
+                                    <div class="today-stat-value" id="todayNoShows">0</div>
+                                    <div class="today-stat-label">No-Shows</div>
                                 </div>
                             </div>
                         </div>
@@ -795,12 +848,7 @@
                                     <h5 class="mb-0"><i class="fas fa-building me-2"></i> Customer Breakdown</h5>
                                 </div>
                                 <div class="card-body">
-                                    <div id="customerBreakdownChart">
-                                        <!-- Chart will be loaded here -->
-                                        <div class="spinner-container">
-                                            <div class="spinner"></div>
-                                        </div>
-                                    </div>
+                                    <canvas id="customerBreakdownChart" height="250"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -810,12 +858,7 @@
                                     <h5 class="mb-0"><i class="fas fa-plane me-2"></i> Flight/Hotel Breakdown</h5>
                                 </div>
                                 <div class="card-body">
-                                    <div id="flightBreakdownChart">
-                                        <!-- Chart will be loaded here -->
-                                        <div class="spinner-container">
-                                            <div class="spinner"></div>
-                                        </div>
-                                    </div>
+                                    <canvas id="flightBreakdownChart" height="250"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -839,7 +882,7 @@
                                                     <th>Flight/Hotel</th>
                                                     <th>Activity</th>
                                                     <th>Status</th>
-                                                    <th>User</th>
+                                                    <th>FOC</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="recentActivityTable">
@@ -862,7 +905,7 @@
                 <div class="tab-pane fade" id="reservationTab">
                     <div class="row">
                         <!-- Left Column: Reservation Form -->
-                        <div class="col-lg-8">
+                        <div class="col-lg-12">
                             <div class="card dashboard-card mb-4">
                                 <div class="card-header card-header-success">
                                     <h5 class="mb-0"><i class="fas fa-calendar-plus me-2"></i> Single Reservation</h5>
@@ -870,27 +913,34 @@
                                 <div class="card-body">
                                     <form id="reservationForm" novalidate>
                                         <div class="row">
-                                            <div class="col-md-6 mb-3 autocomplete-container">
+                                            <div class="col-md-4 mb-3 autocomplete-container">
                                                 <label class="form-label fw-bold">Customer</label>
                                                 <input type="text" id="customer" class="form-control" required>
                                                 <div class="invalid-feedback">Please enter a customer name.</div>
                                             </div>
-                                            <div class="col-md-6 mb-3">
+                                            <div class="col-md-4 mb-3">
                                                 <label class="form-label fw-bold">Date</label>
                                                 <input type="date" id="reservationDate" class="form-control" required>
                                                 <div class="invalid-feedback">Please select a date.</div>
                                             </div>
-                                            <div class="col-md-6 mb-3 autocomplete-container">
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label fw-bold">FOC Passenger</label>
+                                                <div class="form-check form-switch mt-2">
+                                                    <input class="form-check-input" type="checkbox" id="focPassenger">
+                                                    <label class="form-check-label" for="focPassenger">Mark as FOC (Free of Charge)</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3 autocomplete-container">
                                                 <label class="form-label fw-bold">Flight/Hotel</label>
                                                 <input type="text" id="flightHotel" class="form-control" required>
                                                 <div class="invalid-feedback">Please enter flight/hotel details.</div>
                                             </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label fw-bold">STA</label>
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label fw-bold">STA/ETA</label>
                                                 <input type="time" id="sta" class="form-control" required>
-                                                <div class="invalid-feedback">Please select STA.</div>
+                                                <div class="invalid-feedback">Please select STA/ETA.</div>
                                             </div>
-                                            <div class="col-md-6 mb-3">
+                                            <div class="col-md-4 mb-3">
                                                 <label class="form-label fw-bold">Direction</label>
                                                 <select id="direction" class="form-select" required>
                                                     <option value="">Select Direction</option>
@@ -947,14 +997,6 @@
                                                 <i class="fas fa-download me-1"></i> Download Excel Template
                                             </a>
                                         </div>
-                                        <div class="mt-2">
-                                            <button class="btn btn-warning btn-sm me-2" onclick="app.debugExcelColumns()">
-                                                <i class="fas fa-bug me-1"></i> Debug Columns
-                                            </button>
-                                            <button class="btn btn-info btn-sm" onclick="app.debugViluExcelColumns()">
-                                                <i class="fas fa-file-excel me-1"></i> Debug VILU Format
-                                            </button>
-                                        </div>
                                     </div>
                                     <div id="excelPreview" class="d-none mt-4">
                                         <h6 class="mb-3">Preview (<span id="previewCount">0</span> records)</h6>
@@ -980,31 +1022,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Right Column: Recent Reservations -->
-                        <div class="col-lg-4">
-                            <div id="recentReservationsContainer">
-                                <!-- Recent reservations will be loaded here -->
-                                <div class="card dashboard-card recent-reservations-card">
-                                    <div class="card-header card-header-info">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Reservations</h5>
-                                            <span class="badge bg-light text-dark rounded-pill" id="recentCount">0</span>
-                                        </div>
-                                    </div>
-                                    <div class="card-body p-0">
-                                        <div class="recent-reservations-scroll">
-                                            <div class="spinner-container">
-                                                <div class="spinner"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card-footer bg-transparent border-top">
-                                        <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i> Click on any reservation to view details</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -1019,6 +1036,9 @@
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-success" onclick="app.bulkCheckIn()">
                                     <i class="fas fa-sign-in-alt me-1"></i> Bulk Check-In
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="app.bulkMarkNoShow()">
+                                    <i class="fas fa-user-times me-1"></i> Bulk Mark No-Show
                                 </button>
                                 <button class="btn btn-sm btn-outline-secondary" onclick="app.clearCheckinSelection()">
                                     <i class="fas fa-times me-1"></i> Clear Selection
@@ -1051,11 +1071,11 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label fw-bold">Status</label>
-                                        <select id="checkinStatusFilter" class="form-select">
-                                            <option value="reserved">Reserved</option>
-                                            <option value="checked-in">Checked-In</option>
+                                        <label class="form-label fw-bold">FOC Status</label>
+                                        <select id="checkinFOCFilter" class="form-select">
                                             <option value="">All</option>
+                                            <option value="true">FOC Only</option>
+                                            <option value="false">Non-FOC Only</option>
                                         </select>
                                     </div>
                                     <div class="col-md-12">
@@ -1065,6 +1085,9 @@
                                             </button>
                                             <button class="btn btn-outline-secondary" onclick="app.clearCheckinFilters()">
                                                 <i class="fas fa-filter-circle-xmark me-2"></i> Clear Filters
+                                            </button>
+                                            <button class="btn btn-warning" onclick="app.autoMarkNoShows()">
+                                                <i class="fas fa-user-times me-2"></i> Auto-Mark No-Shows
                                             </button>
                                         </div>
                                     </div>
@@ -1080,15 +1103,16 @@
                                             <th>Guest Name</th>
                                             <th>Customer</th>
                                             <th>Flight/Hotel</th>
-                                            <th>STA</th>
+                                            <th>STA/ETA</th>
                                             <th>Direction</th>
+                                            <th>FOC</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="checkinTable">
                                         <tr>
-                                            <td colspan="8" class="text-center text-muted py-4">
+                                            <td colspan="9" class="text-center text-muted py-4">
                                                 <div class="spinner"></div>
                                                 <p class="mt-2">Loading data...</p>
                                             </td>
@@ -1143,11 +1167,11 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label fw-bold">Status</label>
-                                        <select id="checkoutStatusFilter" class="form-select">
-                                            <option value="checked-in">Checked-In</option>
-                                            <option value="checked-out">Checked-Out</option>
+                                        <label class="form-label fw-bold">FOC Status</label>
+                                        <select id="checkoutFOCFilter" class="form-select">
                                             <option value="">All</option>
+                                            <option value="true">FOC Only</option>
+                                            <option value="false">Non-FOC Only</option>
                                         </select>
                                     </div>
                                     <div class="col-md-12">
@@ -1172,16 +1196,17 @@
                                             <th>Guest Name</th>
                                             <th>Customer</th>
                                             <th>Flight/Hotel</th>
-                                            <th>STA</th>
+                                            <th>STA/ETA</th>
                                             <th>Direction</th>
                                             <th>Check-In Time</th>
+                                            <th>FOC</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="checkoutTable">
                                         <tr>
-                                            <td colspan="9" class="text-center text-muted py-4">
+                                            <td colspan="10" class="text-center text-muted py-4">
                                                 <div class="spinner"></div>
                                                 <p class="mt-2">Loading data...</p>
                                             </td>
@@ -1194,10 +1219,10 @@
                 </div>
 
                 <!-- Report Tab -->
-                <div class="tab-pane fade" id="reportTab">
+                <div class="tab-pane fade show active" id="reportTab">
                     <div class="card dashboard-card">
                         <div class="card-header">
-                            <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i> Generate Report</h5>
+                            <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i> Generate Reports</h5>
                         </div>
                         <div class="card-body">
                             <div class="filter-section">
@@ -1222,8 +1247,26 @@
                                             <option value="">All Customers</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">FOC Status</label>
+                                        <select id="reportFOCFilter" class="form-select">
+                                            <option value="">All</option>
+                                            <option value="true">FOC Only</option>
+                                            <option value="false">Non-FOC Only</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Status</label>
+                                        <select id="reportStatusFilter" class="form-select">
+                                            <option value="">All Status</option>
+                                            <option value="reserved">Reserved</option>
+                                            <option value="checked-in">Checked-In</option>
+                                            <option value="checked-out">Checked-Out</option>
+                                            <option value="no-show">No-Show</option>
+                                        </select>
+                                    </div>
                                     <div class="col-md-12">
-                                        <div class="d-flex gap-2">
+                                        <div class="d-flex gap-2 flex-wrap">
                                             <button id="generateReportBtn" class="btn btn-primary">
                                                 <i class="fas fa-file-pdf me-2"></i> Generate PDF Report
                                             </button>
@@ -1232,6 +1275,12 @@
                                             </button>
                                             <button id="generateChargeSheetBtn" class="btn btn-warning">
                                                 <i class="fas fa-file-invoice-dollar me-2"></i> Charge Sheet
+                                            </button>
+                                            <button id="generateNoShowReportBtn" class="btn btn-danger">
+                                                <i class="fas fa-user-times me-2"></i> No-Show Report
+                                            </button>
+                                            <button id="generateFOCReportBtn" class="btn btn-info">
+                                                <i class="fas fa-user-tag me-2"></i> FOC Report
                                             </button>
                                             <button class="btn btn-outline-secondary" onclick="app.clearReportFilters()">
                                                 <i class="fas fa-filter-circle-xmark me-2"></i> Clear Filters
@@ -1289,7 +1338,7 @@
                                 <input type="text" id="editFlightHotel" class="form-control" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">STA</label>
+                                <label class="form-label fw-bold">STA/ETA</label>
                                 <input type="time" id="editSta" class="form-control" required>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -1310,11 +1359,19 @@
                                 <input type="text" id="editNationality" class="form-control" required>
                             </div>
                             <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">FOC Passenger</label>
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="editFOCPassenger">
+                                    <label class="form-check-label" for="editFOCPassenger">Mark as FOC (Free of Charge)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Status</label>
                                 <select id="editStatus" class="form-select">
                                     <option value="reserved">Reserved</option>
                                     <option value="checked-in">Checked-In</option>
                                     <option value="checked-out">Checked-Out</option>
+                                    <option value="no-show">No-Show</option>
                                 </select>
                             </div>
                             <div class="col-12 mb-3">
@@ -1357,12 +1414,19 @@
                                 <input type="text" id="quickCheckinFlightHotel" class="form-control" readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">STA</label>
+                                <label class="form-label fw-bold">STA/ETA</label>
                                 <input type="time" id="quickCheckinSta" class="form-control">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Direction</label>
                                 <input type="text" id="quickCheckinDirection" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">FOC Passenger</label>
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="quickCheckinFOC">
+                                    <label class="form-check-label" for="quickCheckinFOC">FOC (Free of Charge)</label>
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Actual Check-In Time</label>
@@ -1396,7 +1460,6 @@
     
     <!-- Main Application Script -->
     <script>
-    
     class ReservationSystem {
         constructor() {
             this.currentUser = null;
@@ -1406,7 +1469,7 @@
             this.excelData = [];
             this.selectedCheckinReservations = new Set();
             this.selectedCheckoutReservations = new Set();
-            this.checkinChart = null;
+            this.customerChart = null;
             this.flightChart = null;
             this.init();
         }
@@ -1509,9 +1572,9 @@
                 checkinCustomerFilter.addEventListener('change', () => this.loadCheckinData());
             }
             
-            const checkinStatusFilter = document.getElementById('checkinStatusFilter');
-            if (checkinStatusFilter) {
-                checkinStatusFilter.addEventListener('change', () => this.loadCheckinData());
+            const checkinFOCFilter = document.getElementById('checkinFOCFilter');
+            if (checkinFOCFilter) {
+                checkinFOCFilter.addEventListener('change', () => this.loadCheckinData());
             }
             
             const checkoutDateFilter = document.getElementById('checkoutDateFilter');
@@ -1529,11 +1592,12 @@
                 checkoutCustomerFilter.addEventListener('change', () => this.loadCheckoutData());
             }
             
-            const checkoutStatusFilter = document.getElementById('checkoutStatusFilter');
-            if (checkoutStatusFilter) {
-                checkoutStatusFilter.addEventListener('change', () => this.loadCheckoutData());
+            const checkoutFOCFilter = document.getElementById('checkoutFOCFilter');
+            if (checkoutFOCFilter) {
+                checkoutFOCFilter.addEventListener('change', () => this.loadCheckoutData());
             }
             
+            // Report buttons
             const generateReportBtn = document.getElementById('generateReportBtn');
             if (generateReportBtn) {
                 generateReportBtn.addEventListener('click', () => this.generateReport());
@@ -1547,6 +1611,16 @@
             const generateChargeSheetBtn = document.getElementById('generateChargeSheetBtn');
             if (generateChargeSheetBtn) {
                 generateChargeSheetBtn.addEventListener('click', () => this.generateChargeSheet());
+            }
+            
+            const generateNoShowReportBtn = document.getElementById('generateNoShowReportBtn');
+            if (generateNoShowReportBtn) {
+                generateNoShowReportBtn.addEventListener('click', () => this.generateNoShowReport());
+            }
+            
+            const generateFOCReportBtn = document.getElementById('generateFOCReportBtn');
+            if (generateFOCReportBtn) {
+                generateFOCReportBtn.addEventListener('click', () => this.generateFOCReport());
             }
             
             // Overview filters
@@ -1578,8 +1652,6 @@
                         this.loadCustomerOptionsForCheckout();
                     } else if (target === '#reportTab') {
                         this.loadReportOptions();
-                    } else if (target === '#reservationTab') {
-                        this.loadRecentReservations();
                     }
                 });
             });
@@ -1671,9 +1743,6 @@
                 if (field) field.value = today;
             });
             
-            // Show initial state for recent reservations
-            this.showInitialRecentReservations();
-            
             // Load initial data
             this.loadCheckinData();
             this.loadCheckoutData();
@@ -1682,12 +1751,11 @@
             this.loadCustomerOptionsForCheckin();
             this.loadCustomerOptionsForCheckout();
             this.loadReportOptions();
-            this.loadRecentReservations();
             
-            // Set Overview as active tab
-            const overviewTab = document.querySelector('a[href="#overviewTab"]');
-            if (overviewTab) {
-                overviewTab.click();
+            // Set Report as active tab
+            const reportTab = document.querySelector('a[href="#reportTab"]');
+            if (reportTab) {
+                reportTab.click();
             }
         }
 
@@ -1798,6 +1866,7 @@
             const customer = document.getElementById('customer').value;
             const flightHotel = document.getElementById('flightHotel').value;
             const reservationDate = document.getElementById('reservationDate').value;
+            const focPassenger = document.getElementById('focPassenger').checked;
             
             const reservation = {
                 customer: customer,
@@ -1808,6 +1877,7 @@
                 guestName: document.getElementById('guestName').value,
                 nationality: document.getElementById('nationality').value,
                 remarks: document.getElementById('remarks').value,
+                foc: focPassenger,
                 status: 'reserved',
                 createdAt: new Date().toISOString(),
                 createdBy: this.currentUser.username,
@@ -1815,7 +1885,8 @@
                 checkoutDate: null,
                 reservationDate: reservationDate,
                 actualCheckinTime: null,
-                checkinRemarks: null
+                checkinRemarks: null,
+                noShowReason: null
             };
             
             try {
@@ -1827,11 +1898,9 @@
                 
                 alert('Reservation saved successfully!');
                 
-                // Reload recent reservations from Firebase
-                this.loadRecentReservations();
-                
                 document.getElementById('reservationForm').reset();
                 document.getElementById('reservationDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('focPassenger').checked = false;
                 
                 // Refresh all data
                 this.loadCheckinData();
@@ -1846,232 +1915,6 @@
             } catch (error) {
                 console.error('Error saving reservation:', error);
                 alert('Error saving reservation. Please try again.');
-            }
-        }
-
-        showInitialRecentReservations() {
-            const container = document.getElementById('recentReservationsContainer');
-            if (!container) return;
-            
-            container.innerHTML = `
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title mb-3">Recent Reservations</h6>
-                        <p class="text-muted mb-0">Reservations will appear here.</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        async loadRecentReservations() {
-            try {
-                // Fetch reservations with status 'reserved' (not checked-in) from Firebase
-                const snapshot = await this.db.collection('reservations')
-                    .where('status', '==', 'reserved')
-                    .orderBy('createdAt', 'desc')
-                    .limit(10)
-                    .get();
-                
-                const recentReservations = [];
-                snapshot.forEach(doc => {
-                    recentReservations.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                });
-                
-                this.displayRecentReservations(recentReservations);
-            } catch (error) {
-                console.error('Error loading recent reservations from Firebase:', error);
-                this.displayRecentReservations([]);
-            }
-        }
-
-        displayRecentReservations(recentReservations) {
-            const container = document.getElementById('recentReservationsContainer');
-            if (!container) return;
-            
-            if (recentReservations.length === 0) {
-                container.innerHTML = `
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title mb-3">Recent Reservations</h6>
-                            <p class="text-muted mb-0">No recent reservations found.</p>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = `
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="card-title mb-0">Recent Reservations</h6>
-                            <span class="badge bg-primary">${recentReservations.length}</span>
-                        </div>
-                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                            <table class="table table-sm table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Guest</th>
-                                        <th>Flight/Hotel</th>
-                                        <th>Customer</th>
-                                        <th>Status</th>
-                                        <th>Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-            `;
-            
-            recentReservations.forEach(res => {
-                const time = new Date(res.createdAt).toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                html += `
-                    <tr onclick="app.showReservationDetails('${res.id}')" style="cursor: pointer;">
-                        <td>${res.guestName}</td>
-                        <td>${res.flightHotel}</td>
-                        <td>${res.customer}</td>
-                        <td>
-                            <span class="status-badge status-reserved">Reserved</span>
-                        </td>
-                        <td>${time}</td>
-                    </tr>
-                `;
-            });
-            
-            html += `
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            container.innerHTML = html;
-        }
-
-        async showReservationDetails(reservationId) {
-            try {
-                const doc = await this.db.collection('reservations').doc(reservationId).get();
-                if (!doc.exists) {
-                    alert('Reservation not found!');
-                    return;
-                }
-                
-                const reservation = doc.data();
-                
-                // Create modal for details
-                const modalHtml = `
-                    <div class="modal fade" id="reservationDetailsModal" tabindex="-1">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Reservation Details</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>Guest Name:</strong></label>
-                                                <p>${reservation.guestName}</p>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>Customer:</strong></label>
-                                                <p>${reservation.customer}</p>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>Flight/Hotel:</strong></label>
-                                                <p>${reservation.flightHotel}</p>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>STA:</strong></label>
-                                                <p>${reservation.sta}</p>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>Direction:</strong></label>
-                                                <p>${reservation.direction}</p>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>Nationality:</strong></label>
-                                                <p>${reservation.nationality}</p>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>Reservation Date:</strong></label>
-                                                <p>${reservation.reservationDate}</p>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label"><strong>Status:</strong></label>
-                                                <span class="badge bg-warning text-dark">${reservation.status}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3">
-                                        <label class="form-label"><strong>Created:</strong></label>
-                                        <p>${new Date(reservation.createdAt).toLocaleString()}</p>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-danger" onclick="app.deleteReservation('${reservationId}')">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Remove existing modal if any
-                const existingModal = document.getElementById('reservationDetailsModal');
-                if (existingModal) {
-                    existingModal.remove();
-                }
-                
-                // Add modal to body
-                document.body.insertAdjacentHTML('beforeend', modalHtml);
-                
-                // Show modal
-                const modal = new bootstrap.Modal(document.getElementById('reservationDetailsModal'));
-                modal.show();
-                
-            } catch (error) {
-                console.error('Error loading reservation details:', error);
-                alert('Error loading reservation details.');
-            }
-        }
-
-        async deleteReservation(reservationId) {
-            if (!confirm('Are you sure you want to delete this reservation? This action cannot be undone.')) {
-                return;
-            }
-            
-            try {
-                await this.db.collection('reservations').doc(reservationId).delete();
-                
-                // Refresh recent reservations from Firebase
-                this.loadRecentReservations();
-                
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('reservationDetailsModal'));
-                if (modal) {
-                    modal.hide();
-                }
-                
-                alert('Reservation deleted successfully!');
-                
-                // Refresh other data
-                this.loadCheckinData();
-                this.loadCheckoutData();
-                this.loadOverviewData();
-                
-            } catch (error) {
-                console.error('Error deleting reservation:', error);
-                alert('Error deleting reservation. Please try again.');
             }
         }
 
@@ -2095,6 +1938,7 @@
                 document.getElementById('editDirection').value = reservation.direction || 'Arrival';
                 document.getElementById('editGuestName').value = reservation.guestName || '';
                 document.getElementById('editNationality').value = reservation.nationality || '';
+                document.getElementById('editFOCPassenger').checked = reservation.foc || false;
                 document.getElementById('editStatus').value = reservation.status || 'reserved';
                 document.getElementById('editRemarks').value = reservation.remarks || '';
                 
@@ -2119,6 +1963,7 @@
                 direction: document.getElementById('editDirection').value,
                 guestName: document.getElementById('editGuestName').value,
                 nationality: document.getElementById('editNationality').value,
+                foc: document.getElementById('editFOCPassenger').checked,
                 status: document.getElementById('editStatus').value,
                 remarks: document.getElementById('editRemarks').value,
                 updatedAt: new Date().toISOString(),
@@ -2141,7 +1986,6 @@
                 alert('Reservation updated successfully!');
                 
                 // Refresh all data
-                this.loadRecentReservations();
                 this.loadCheckinData();
                 this.loadCheckoutData();
                 this.loadFlightOptionsForCheckin();
@@ -2174,6 +2018,7 @@
                 document.getElementById('quickCheckinFlightHotel').value = reservation.flightHotel || '';
                 document.getElementById('quickCheckinSta').value = reservation.sta || '';
                 document.getElementById('quickCheckinDirection').value = reservation.direction || '';
+                document.getElementById('quickCheckinFOC').checked = reservation.foc || false;
                 
                 // Set current time as default for actual check-in time
                 const now = new Date();
@@ -2195,6 +2040,7 @@
             const actualTime = document.getElementById('quickCheckinActualTime').value;
             const sta = document.getElementById('quickCheckinSta').value;
             const remarks = document.getElementById('quickCheckinRemarks').value;
+            const foc = document.getElementById('quickCheckinFOC').checked;
             
             if (!actualTime) {
                 alert('Please enter actual check-in time.');
@@ -2212,6 +2058,7 @@
                 await this.db.collection('reservations').doc(reservationId).update({
                     status: 'checked-in',
                     sta: sta,
+                    foc: foc,
                     actualCheckinTime: actualTime,
                     checkinTime: checkinTime,
                     checkinDateTime: now.toISOString(),
@@ -2232,7 +2079,6 @@
                 this.loadCheckinData();
                 this.loadCheckoutData();
                 this.loadOverviewData();
-                this.loadRecentReservations();
                 
             } catch (error) {
                 console.error('Error checking in guest:', error);
@@ -2351,7 +2197,44 @@
             this.loadCheckinData();
             this.loadCheckoutData();
             this.loadOverviewData();
-            this.loadRecentReservations();
+        }
+
+        async bulkMarkNoShow() {
+            if (this.selectedCheckinReservations.size === 0) {
+                alert('Please select guests to mark as no-show.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to mark ${this.selectedCheckinReservations.size} guests as no-show?`)) {
+                return;
+            }
+            
+            const reason = prompt('Please enter reason for no-show (optional):', 'Guest did not arrive');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const reservationId of this.selectedCheckinReservations) {
+                try {
+                    await this.db.collection('reservations').doc(reservationId).update({
+                        status: 'no-show',
+                        noShowReason: reason || 'Guest did not arrive',
+                        noShowMarkedAt: new Date().toISOString(),
+                        noShowMarkedBy: this.currentUser.username
+                    });
+                    successCount++;
+                } catch (error) {
+                    console.error(`Error marking reservation ${reservationId} as no-show:`, error);
+                    errorCount++;
+                }
+            }
+            
+            alert(`Bulk no-show marking completed:\nSuccess: ${successCount}\nFailed: ${errorCount}`);
+            
+            // Clear selection and refresh data
+            this.clearCheckinSelection();
+            this.loadCheckinData();
+            this.loadOverviewData();
         }
 
         // Bulk Check-Out Functions
@@ -2468,9 +2351,7 @@
 
         async loadFlightOptionsForCheckin() {
             try {
-                const snapshot = await this.db.collection('reservations')
-                    .where('status', 'in', ['reserved', 'checked-in'])
-                    .get();
+                const snapshot = await this.db.collection('reservations').get();
                 
                 const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
                 const select = document.getElementById('checkinFlightFilter');
@@ -2497,9 +2378,7 @@
 
         async loadCustomerOptionsForCheckin() {
             try {
-                const snapshot = await this.db.collection('reservations')
-                    .where('status', 'in', ['reserved', 'checked-in'])
-                    .get();
+                const snapshot = await this.db.collection('reservations').get();
                 
                 const customers = [...new Set(snapshot.docs.map(doc => doc.data().customer))];
                 const select = document.getElementById('checkinCustomerFilter');
@@ -2526,9 +2405,7 @@
 
         async loadFlightOptionsForCheckout() {
             try {
-                const snapshot = await this.db.collection('reservations')
-                    .where('status', 'in', ['checked-in', 'checked-out'])
-                    .get();
+                const snapshot = await this.db.collection('reservations').get();
                 
                 const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
                 const select = document.getElementById('checkoutFlightFilter');
@@ -2555,9 +2432,7 @@
 
         async loadCustomerOptionsForCheckout() {
             try {
-                const snapshot = await this.db.collection('reservations')
-                    .where('status', 'in', ['checked-in', 'checked-out'])
-                    .get();
+                const snapshot = await this.db.collection('reservations').get();
                 
                 const customers = [...new Set(snapshot.docs.map(doc => doc.data().customer))];
                 const select = document.getElementById('checkoutCustomerFilter');
@@ -2586,7 +2461,7 @@
             const dateInput = document.getElementById('checkinDateFilter');
             const flightSelect = document.getElementById('checkinFlightFilter');
             const customerSelect = document.getElementById('checkinCustomerFilter');
-            const statusSelect = document.getElementById('checkinStatusFilter');
+            const focSelect = document.getElementById('checkinFOCFilter');
             const tableBody = document.getElementById('checkinTable');
             
             if (!tableBody) return;
@@ -2594,7 +2469,7 @@
             const date = dateInput ? dateInput.value : '';
             const flightFilter = flightSelect ? flightSelect.value : '';
             const customerFilter = customerSelect ? customerSelect.value : '';
-            const statusFilter = statusSelect ? statusSelect.value : '';
+            const focFilter = focSelect ? focSelect.value : '';
             
             try {
                 let query = this.db.collection('reservations');
@@ -2604,19 +2479,13 @@
                     query = query.where('reservationDate', '==', date);
                 }
                 
-                if (statusFilter) {
-                    query = query.where('status', '==', statusFilter);
-                } else {
-                    query = query.where('status', 'in', ['reserved', 'checked-in']);
-                }
-                
                 const snapshot = await query.get();
                 tableBody.innerHTML = '';
                 
                 if (snapshot.empty) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="8" class="text-center text-muted">
+                            <td colspan="9" class="text-center text-muted">
                                 No reservations found
                             </td>
                         </tr>
@@ -2626,6 +2495,8 @@
                 }
                 
                 let hasData = false;
+                const now = new Date();
+                const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
                 
                 snapshot.forEach(doc => {
                     const data = doc.data();
@@ -2633,18 +2504,25 @@
                     // Apply additional filters
                     if (flightFilter && data.flightHotel !== flightFilter) return;
                     if (customerFilter && data.customer !== customerFilter) return;
+                    if (focFilter) {
+                        const isFOC = data.foc || false;
+                        if (focFilter === 'true' && !isFOC) return;
+                        if (focFilter === 'false' && isFOC) return;
+                    }
+                    
+                    // Only show reserved guests (not checked-in, checked-out, or no-show)
+                    if (data.status !== 'reserved') return;
                     
                     hasData = true;
-                    const statusBadge = data.status === 'checked-in' ? 
-                        '<span class="status-badge status-checkedin">Checked-In</span>' : 
-                        '<span class="status-badge status-reserved">Reserved</span>';
+                    const isNoShow = this.isNoShow(data.sta, currentTime);
+                    const rowClass = isNoShow ? 'noshow-row' : '';
                     
-                    const checkinTime = data.checkinTime ? `<br><small>${data.checkinTime}</small>` : '';
+                    const focBadge = data.foc ? '<span class="foc-badge">FOC</span>' : '';
                     
                     const isSelected = this.selectedCheckinReservations.has(doc.id);
                     
                     const row = `
-                        <tr>
+                        <tr class="${rowClass}">
                             <td>
                                 <input type="checkbox" class="bulk-checkbox" value="${doc.id}" 
                                        ${isSelected ? 'checked' : ''}
@@ -2653,22 +2531,28 @@
                             <td>${data.guestName}</td>
                             <td>${data.customer}</td>
                             <td>${data.flightHotel}</td>
-                            <td>${data.sta}${checkinTime}</td>
+                            <td>${data.sta}</td>
                             <td>${data.direction}</td>
-                            <td>${statusBadge}</td>
+                            <td>${focBadge}</td>
+                            <td>
+                                ${isNoShow ? 
+                                    '<span class="status-badge status-noshow">No-Show</span>' : 
+                                    '<span class="status-badge status-reserved">Reserved</span>'
+                                }
+                            </td>
                             <td>
                                 <div class="action-buttons">
-                                    ${data.status === 'reserved' ? `
                                     <button class="btn btn-sm btn-success" onclick="app.openQuickCheckinModal('${doc.id}')">
                                         <i class="fas fa-sign-in-alt"></i>
                                     </button>
-                                    ` : ''}
                                     <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-danger" onclick="app.deleteReservation('${doc.id}')">
-                                        <i class="fas fa-trash"></i>
+                                    ${isNoShow ? `
+                                    <button class="btn btn-sm btn-danger" onclick="app.markNoShow('${doc.id}')">
+                                        <i class="fas fa-user-times"></i>
                                     </button>
+                                    ` : ''}
                                 </div>
                             </td>
                         </tr>
@@ -2679,7 +2563,7 @@
                 if (!hasData) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="8" class="text-center text-muted">
+                            <td colspan="9" class="text-center text-muted">
                                 No guests match the selected filters
                             </td>
                         </tr>
@@ -2691,7 +2575,7 @@
                 console.error('Error loading check-in data:', error);
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="text-center text-danger">
+                        <td colspan="9" class="text-center text-danger">
                             Error loading data. Please try again.
                         </td>
                     </tr>
@@ -2699,11 +2583,102 @@
             }
         }
 
+        isNoShow(staTime, currentTime) {
+            if (!staTime) return false;
+            
+            const staDate = new Date();
+            const [staHours, staMinutes] = staTime.split(':').map(Number);
+            staDate.setHours(staHours, staMinutes, 0, 0);
+            
+            const currentDate = new Date();
+            const [currentHours, currentMinutes] = currentTime.split(':').map(Number);
+            currentDate.setHours(currentHours, currentMinutes, 0, 0);
+            
+            // Consider as no-show if current time is 30 minutes past STA
+            staDate.setMinutes(staDate.getMinutes() + 30);
+            
+            return currentDate > staDate;
+        }
+
+        async autoMarkNoShows() {
+            if (!confirm('Automatically mark all reserved guests with passed STA/ETA as no-show?')) {
+                return;
+            }
+            
+            const now = new Date();
+            const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const today = now.toISOString().split('T')[0];
+            
+            try {
+                const snapshot = await this.db.collection('reservations')
+                    .where('reservationDate', '==', today)
+                    .where('status', '==', 'reserved')
+                    .get();
+                
+                let markedCount = 0;
+                let errorCount = 0;
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    if (this.isNoShow(data.sta, currentTime)) {
+                        try {
+                            this.db.collection('reservations').doc(doc.id).update({
+                                status: 'no-show',
+                                noShowReason: 'Auto-marked: STA/ETA passed',
+                                noShowMarkedAt: new Date().toISOString(),
+                                noShowMarkedBy: this.currentUser.username
+                            });
+                            markedCount++;
+                        } catch (error) {
+                            console.error(`Error auto-marking no-show for ${doc.id}:`, error);
+                            errorCount++;
+                        }
+                    }
+                });
+                
+                alert(`Auto-mark no-shows completed:\nMarked: ${markedCount}\nErrors: ${errorCount}`);
+                
+                // Refresh data
+                this.loadCheckinData();
+                this.loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error auto-marking no-shows:', error);
+                alert('Error auto-marking no-shows. Please try again.');
+            }
+        }
+
+        async markNoShow(reservationId) {
+            const reason = prompt('Please enter reason for no-show (optional):', 'Guest did not arrive');
+            
+            if (reason === null) return; // User cancelled
+            
+            try {
+                await this.db.collection('reservations').doc(reservationId).update({
+                    status: 'no-show',
+                    noShowReason: reason || 'Guest did not arrive',
+                    noShowMarkedAt: new Date().toISOString(),
+                    noShowMarkedBy: this.currentUser.username
+                });
+                
+                alert('Guest marked as no-show successfully!');
+                
+                // Refresh data
+                this.loadCheckinData();
+                this.loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error marking guest as no-show:', error);
+                alert('Error marking guest as no-show. Please try again.');
+            }
+        }
+
         async loadCheckoutData() {
             const dateInput = document.getElementById('checkoutDateFilter');
             const flightSelect = document.getElementById('checkoutFlightFilter');
             const customerSelect = document.getElementById('checkoutCustomerFilter');
-            const statusSelect = document.getElementById('checkoutStatusFilter');
+            const focSelect = document.getElementById('checkoutFOCFilter');
             const tableBody = document.getElementById('checkoutTable');
             
             if (!tableBody) return;
@@ -2711,17 +2686,13 @@
             const date = dateInput ? dateInput.value : '';
             const flightFilter = flightSelect ? flightSelect.value : '';
             const customerFilter = customerSelect ? customerSelect.value : '';
-            const statusFilter = statusSelect ? statusSelect.value : '';
+            const focFilter = focSelect ? focSelect.value : '';
             
             try {
                 let query = this.db.collection('reservations');
                 
-                // Apply status filter
-                if (statusFilter) {
-                    query = query.where('status', '==', statusFilter);
-                } else {
-                    query = query.where('status', 'in', ['checked-in', 'checked-out']);
-                }
+                // Apply status filter - show checked-in guests only
+                query = query.where('status', '==', 'checked-in');
                 
                 const snapshot = await query.get();
                 tableBody.innerHTML = '';
@@ -2729,8 +2700,8 @@
                 if (snapshot.empty) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="9" class="text-center text-muted">
-                                No checked-in/out guests available
+                            <td colspan="10" class="text-center text-muted">
+                                No checked-in guests available
                             </td>
                         </tr>
                     `;
@@ -2747,13 +2718,15 @@
                     if (date && data.checkinDate !== date) return;
                     if (flightFilter && data.flightHotel !== flightFilter) return;
                     if (customerFilter && data.customer !== customerFilter) return;
+                    if (focFilter) {
+                        const isFOC = data.foc || false;
+                        if (focFilter === 'true' && !isFOC) return;
+                        if (focFilter === 'false' && isFOC) return;
+                    }
                     
                     hasData = true;
-                    const statusBadge = data.status === 'checked-out' ? 
-                        '<span class="status-badge status-checkedout">Checked-Out</span>' : 
-                        '<span class="status-badge status-checkedin">Checked-In</span>';
                     
-                    const checkoutTime = data.checkoutTime ? `<br><small>${data.checkoutTime}</small>` : '';
+                    const focBadge = data.foc ? '<span class="foc-badge">FOC</span>' : '';
                     
                     const isSelected = this.selectedCheckoutReservations.has(doc.id);
                     
@@ -2767,22 +2740,18 @@
                             <td>${data.guestName}</td>
                             <td>${data.customer}</td>
                             <td>${data.flightHotel}</td>
-                            <td>${data.sta}${checkoutTime}</td>
+                            <td>${data.sta}</td>
                             <td>${data.direction}</td>
                             <td>${data.checkinTime || 'N/A'}</td>
-                            <td>${statusBadge}</td>
+                            <td>${focBadge}</td>
+                            <td><span class="status-badge status-checkedin">Checked-In</span></td>
                             <td>
                                 <div class="action-buttons">
-                                    ${data.status === 'checked-in' ? `
                                     <button class="btn btn-sm btn-warning" onclick="app.checkoutGuest('${doc.id}')">
                                         <i class="fas fa-sign-out-alt"></i>
                                     </button>
-                                    ` : ''}
                                     <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
                                         <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" onclick="app.deleteReservation('${doc.id}')">
-                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </td>
@@ -2794,7 +2763,7 @@
                 if (!hasData) {
                     tableBody.innerHTML = `
                         <tr>
-                            <td colspan="9" class="text-center text-muted">
+                            <td colspan="10" class="text-center text-muted">
                                 No guests match the selected filters
                             </td>
                         </tr>
@@ -2806,7 +2775,7 @@
                 console.error('Error loading check-out data:', error);
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="9" class="text-center text-danger">
+                        <td colspan="10" class="text-center text-danger">
                             Error loading data. Please try again.
                         </td>
                     </tr>
@@ -2857,7 +2826,7 @@
                 const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
                 const customers = [...new Set(snapshot.docs.map(doc => doc.data().customer))];
                 
-                // Flight filter
+                // Flight filter for reports
                 const flightSelect = document.getElementById('reportFlightFilter');
                 if (flightSelect) {
                     const currentValue = flightSelect.value;
@@ -2875,7 +2844,7 @@
                     }
                 }
                 
-                // Customer filter
+                // Customer filter for reports
                 const customerSelect = document.getElementById('reportCustomerFilter');
                 if (customerSelect) {
                     const currentValue = customerSelect.value;
@@ -2910,6 +2879,78 @@
                         overviewCustomerSelect.value = currentValue;
                     }
                 }
+                
+                // Check-in flight filter
+                const checkinFlightSelect = document.getElementById('checkinFlightFilter');
+                if (checkinFlightSelect) {
+                    const currentValue = checkinFlightSelect.value;
+                    checkinFlightSelect.innerHTML = '<option value="">All Flights/Hotels</option>';
+                    flights.forEach(flight => {
+                        if (flight) {
+                            const option = document.createElement('option');
+                            option.value = flight;
+                            option.textContent = flight;
+                            checkinFlightSelect.appendChild(option);
+                        }
+                    });
+                    if (flights.includes(currentValue)) {
+                        checkinFlightSelect.value = currentValue;
+                    }
+                }
+                
+                // Check-in customer filter
+                const checkinCustomerSelect = document.getElementById('checkinCustomerFilter');
+                if (checkinCustomerSelect) {
+                    const currentValue = checkinCustomerSelect.value;
+                    checkinCustomerSelect.innerHTML = '<option value="">All Customers</option>';
+                    customers.forEach(customer => {
+                        if (customer) {
+                            const option = document.createElement('option');
+                            option.value = customer;
+                            option.textContent = customer;
+                            checkinCustomerSelect.appendChild(option);
+                        }
+                    });
+                    if (customers.includes(currentValue)) {
+                        checkinCustomerSelect.value = currentValue;
+                    }
+                }
+                
+                // Check-out flight filter
+                const checkoutFlightSelect = document.getElementById('checkoutFlightFilter');
+                if (checkoutFlightSelect) {
+                    const currentValue = checkoutFlightSelect.value;
+                    checkoutFlightSelect.innerHTML = '<option value="">All Flights/Hotels</option>';
+                    flights.forEach(flight => {
+                        if (flight) {
+                            const option = document.createElement('option');
+                            option.value = flight;
+                            option.textContent = flight;
+                            checkoutFlightSelect.appendChild(option);
+                        }
+                    });
+                    if (flights.includes(currentValue)) {
+                        checkoutFlightSelect.value = currentValue;
+                    }
+                }
+                
+                // Check-out customer filter
+                const checkoutCustomerSelect = document.getElementById('checkoutCustomerFilter');
+                if (checkoutCustomerSelect) {
+                    const currentValue = checkoutCustomerSelect.value;
+                    checkoutCustomerSelect.innerHTML = '<option value="">All Customers</option>';
+                    customers.forEach(customer => {
+                        if (customer) {
+                            const option = document.createElement('option');
+                            option.value = customer;
+                            option.textContent = customer;
+                            checkoutCustomerSelect.appendChild(option);
+                        }
+                    });
+                    if (customers.includes(currentValue)) {
+                        checkoutCustomerSelect.value = currentValue;
+                    }
+                }
             } catch (error) {
                 console.error('Error loading report options:', error);
             }
@@ -2931,13 +2972,17 @@
                 let totalGuests = 0;
                 let checkIns = 0;
                 let checkOuts = 0;
+                let noShows = 0;
                 let activeNow = 0;
+                let focCount = 0;
                 
                 const today = new Date().toISOString().split('T')[0];
                 let todayReservations = 0;
                 let todayCheckIns = 0;
                 let todayCheckOuts = 0;
                 let todayActive = 0;
+                let todayFOC = 0;
+                let todayNoShows = 0;
                 
                 const customerData = {};
                 const flightData = {};
@@ -2968,6 +3013,13 @@
                         activeNow++;
                     } else if (data.status === 'checked-out') {
                         checkOuts++;
+                    } else if (data.status === 'no-show') {
+                        noShows++;
+                    }
+                    
+                    // Count FOC
+                    if (data.foc) {
+                        focCount++;
                     }
                     
                     // Today's statistics
@@ -2990,14 +3042,34 @@
                         todayActive++;
                     }
                     
+                    if (data.foc && reservationDate === today) {
+                        todayFOC++;
+                    }
+                    
+                    if (data.status === 'no-show' && reservationDate === today) {
+                        todayNoShows++;
+                    }
+                    
                     // Customer breakdown
                     if (data.customer) {
-                        customerData[data.customer] = (customerData[data.customer] || 0) + 1;
+                        if (!customerData[data.customer]) {
+                            customerData[data.customer] = { total: 0, checkedIn: 0, noShow: 0, foc: 0 };
+                        }
+                        customerData[data.customer].total++;
+                        if (data.status === 'checked-in') customerData[data.customer].checkedIn++;
+                        if (data.status === 'no-show') customerData[data.customer].noShow++;
+                        if (data.foc) customerData[data.customer].foc++;
                     }
                     
                     // Flight breakdown
                     if (data.flightHotel) {
-                        flightData[data.flightHotel] = (flightData[data.flightHotel] || 0) + 1;
+                        if (!flightData[data.flightHotel]) {
+                            flightData[data.flightHotel] = { total: 0, checkedIn: 0, noShow: 0, foc: 0 };
+                        }
+                        flightData[data.flightHotel].total++;
+                        if (data.status === 'checked-in') flightData[data.flightHotel].checkedIn++;
+                        if (data.status === 'no-show') flightData[data.flightHotel].noShow++;
+                        if (data.foc) flightData[data.flightHotel].foc++;
                     }
                     
                     // Recent activities (last 10)
@@ -3010,6 +3082,9 @@
                     } else if (data.checkinDateTime) {
                         activity = 'Checked In';
                         activityTime = data.checkinDateTime;
+                    } else if (data.noShowMarkedAt) {
+                        activity = 'Marked No-Show';
+                        activityTime = data.noShowMarkedAt;
                     } else if (data.createdAt) {
                         activity = 'Reserved';
                         activityTime = data.createdAt;
@@ -3023,7 +3098,7 @@
                             flight: data.flightHotel,
                             activity: activity,
                             status: data.status,
-                            user: data.checkoutBy || data.checkinBy || data.createdBy
+                            foc: data.foc || false
                         });
                     }
                 });
@@ -3032,13 +3107,15 @@
                 document.getElementById('overviewTotalGuests').textContent = totalGuests;
                 document.getElementById('overviewCheckIns').textContent = checkIns;
                 document.getElementById('overviewCheckOuts').textContent = checkOuts;
-                document.getElementById('overviewActive').textContent = activeNow;
+                document.getElementById('overviewNoShows').textContent = noShows;
                 
                 // Update today's statistics
                 document.getElementById('todayReservations').textContent = todayReservations;
                 document.getElementById('todayCheckIns').textContent = todayCheckIns;
                 document.getElementById('todayCheckOuts').textContent = todayCheckOuts;
                 document.getElementById('todayActive').textContent = todayActive;
+                document.getElementById('todayFOC').textContent = todayFOC;
+                document.getElementById('todayNoShows').textContent = todayNoShows;
                 
                 // Create charts
                 this.createCustomerBreakdownChart(customerData);
@@ -3061,26 +3138,53 @@
                 this.customerChart.destroy();
             }
             
-            const customers = Object.keys(customerData).slice(0, 10); // Top 10 customers
-            const counts = customers.map(customer => customerData[customer]);
+            // Sort customers by total count
+            const sortedCustomers = Object.entries(customerData)
+                .sort((a, b) => b[1].total - a[1].total)
+                .slice(0, 10); // Top 10 customers
+            
+            const labels = sortedCustomers.map(([customer]) => customer);
+            const totalData = sortedCustomers.map(([, data]) => data.total);
+            const checkedInData = sortedCustomers.map(([, data]) => data.checkedIn);
+            const noShowData = sortedCustomers.map(([, data]) => data.noShow);
             
             this.customerChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: customers,
-                    datasets: [{
-                        label: 'Number of Guests',
-                        data: counts,
-                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total Guests',
+                            data: totalData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Checked-In',
+                            data: checkedInData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'No-Shows',
+                            data: noShowData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     plugins: {
                         legend: {
-                            display: false
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Customer Breakdown'
                         }
                     },
                     scales: {
@@ -3104,15 +3208,20 @@
                 this.flightChart.destroy();
             }
             
-            const flights = Object.keys(flightData).slice(0, 10); // Top 10 flights
-            const counts = flights.map(flight => flightData[flight]);
+            // Sort flights by total count
+            const sortedFlights = Object.entries(flightData)
+                .sort((a, b) => b[1].total - a[1].total)
+                .slice(0, 10); // Top 10 flights
+            
+            const labels = sortedFlights.map(([flight]) => flight);
+            const totalData = sortedFlights.map(([, data]) => data.total);
             
             this.flightChart = new Chart(ctx, {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
-                    labels: flights,
+                    labels: labels,
                     datasets: [{
-                        data: counts,
+                        data: totalData,
                         backgroundColor: [
                             'rgba(255, 99, 132, 0.7)',
                             'rgba(54, 162, 235, 0.7)',
@@ -3145,6 +3254,10 @@
                     plugins: {
                         legend: {
                             position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Flight/Hotel Breakdown'
                         }
                     }
                 }
@@ -3184,11 +3297,18 @@
                     day: 'numeric'
                 });
                 
-                const statusBadge = activity.status === 'checked-in' ? 
-                    '<span class="status-badge status-checkedin">Checked-In</span>' :
-                    activity.status === 'checked-out' ?
-                    '<span class="status-badge status-checkedout">Checked-Out</span>' :
-                    '<span class="status-badge status-reserved">Reserved</span>';
+                let statusBadge = '';
+                if (activity.status === 'checked-in') {
+                    statusBadge = '<span class="status-badge status-checkedin">Checked-In</span>';
+                } else if (activity.status === 'checked-out') {
+                    statusBadge = '<span class="status-badge status-checkedout">Checked-Out</span>';
+                } else if (activity.status === 'no-show') {
+                    statusBadge = '<span class="status-badge status-noshow">No-Show</span>';
+                } else {
+                    statusBadge = '<span class="status-badge status-reserved">Reserved</span>';
+                }
+                
+                const focBadge = activity.foc ? '<span class="foc-badge">FOC</span>' : '';
                 
                 const row = `
                     <tr>
@@ -3198,7 +3318,7 @@
                         <td>${activity.flight}</td>
                         <td>${activity.activity}</td>
                         <td>${statusBadge}</td>
-                        <td>${activity.user}</td>
+                        <td>${focBadge}</td>
                     </tr>
                 `;
                 tableBody.innerHTML += row;
@@ -3214,18 +3334,20 @@
         }
 
         clearCheckinFilters() {
-            document.getElementById('checkinDateFilter').value = '';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('checkinDateFilter').value = today;
             document.getElementById('checkinFlightFilter').value = '';
             document.getElementById('checkinCustomerFilter').value = '';
-            document.getElementById('checkinStatusFilter').value = 'reserved';
+            document.getElementById('checkinFOCFilter').value = '';
             this.loadCheckinData();
         }
 
         clearCheckoutFilters() {
-            document.getElementById('checkoutDateFilter').value = '';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('checkoutDateFilter').value = today;
             document.getElementById('checkoutFlightFilter').value = '';
             document.getElementById('checkoutCustomerFilter').value = '';
-            document.getElementById('checkoutStatusFilter').value = 'checked-in';
+            document.getElementById('checkoutFOCFilter').value = '';
             this.loadCheckoutData();
         }
 
@@ -3235,6 +3357,8 @@
             document.getElementById('reportToDate').value = today;
             document.getElementById('reportFlightFilter').value = '';
             document.getElementById('reportCustomerFilter').value = '';
+            document.getElementById('reportFOCFilter').value = '';
+            document.getElementById('reportStatusFilter').value = '';
         }
 
         async generateReport() {
@@ -3242,6 +3366,8 @@
             const toDateInput = document.getElementById('reportToDate');
             const flightSelect = document.getElementById('reportFlightFilter');
             const customerSelect = document.getElementById('reportCustomerFilter');
+            const focSelect = document.getElementById('reportFOCFilter');
+            const statusSelect = document.getElementById('reportStatusFilter');
             
             if (!fromDateInput || !toDateInput) return;
             
@@ -3249,6 +3375,8 @@
             const toDate = toDateInput.value;
             const flightFilter = flightSelect ? flightSelect.value : '';
             const customerFilter = customerSelect ? customerSelect.value : '';
+            const focFilter = focSelect ? focSelect.value : '';
+            const statusFilter = statusSelect ? statusSelect.value : '';
             
             if (fromDate && toDate && fromDate > toDate) {
                 alert('From date cannot be after To date');
@@ -3279,6 +3407,16 @@
                     // Apply customer filter
                     if (customerFilter && data.customer !== customerFilter) return;
                     
+                    // Apply FOC filter
+                    if (focFilter) {
+                        const isFOC = data.foc || false;
+                        if (focFilter === 'true' && !isFOC) return;
+                        if (focFilter === 'false' && isFOC) return;
+                    }
+                    
+                    // Apply status filter
+                    if (statusFilter && data.status !== statusFilter) return;
+                    
                     reservations.push({ id, ...data });
                 });
                 
@@ -3294,6 +3432,126 @@
             }
         }
 
+        async generateNoShowReport() {
+            const fromDateInput = document.getElementById('reportFromDate');
+            const toDateInput = document.getElementById('reportToDate');
+            const flightSelect = document.getElementById('reportFlightFilter');
+            const customerSelect = document.getElementById('reportCustomerFilter');
+            
+            if (!fromDateInput || !toDateInput) return;
+            
+            const fromDate = fromDateInput.value;
+            const toDate = toDateInput.value;
+            const flightFilter = flightSelect ? flightSelect.value : '';
+            const customerFilter = customerSelect ? customerSelect.value : '';
+            
+            if (fromDate && toDate && fromDate > toDate) {
+                alert('From date cannot be after To date');
+                return;
+            }
+            
+            try {
+                const snapshot = await this.db.collection('reservations')
+                    .where('status', '==', 'no-show')
+                    .get();
+                
+                const reservations = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    
+                    // Apply date filter
+                    if (fromDate && toDate) {
+                        const checkDate = data.reservationDate;
+                        if (!checkDate) return;
+                        
+                        if (checkDate < fromDate || checkDate > toDate) {
+                            return;
+                        }
+                    }
+                    
+                    // Apply flight filter
+                    if (flightFilter && data.flightHotel !== flightFilter) return;
+                    
+                    // Apply customer filter
+                    if (customerFilter && data.customer !== customerFilter) return;
+                    
+                    reservations.push({ id, ...data });
+                });
+                
+                if (reservations.length === 0) {
+                    alert('No no-show reservations found for the selected criteria.');
+                    return;
+                }
+                
+                this.displayNoShowReport(reservations, fromDate, toDate);
+            } catch (error) {
+                console.error('Error generating no-show report:', error);
+                alert('Error generating no-show report. Please try again.');
+            }
+        }
+
+        async generateFOCReport() {
+            const fromDateInput = document.getElementById('reportFromDate');
+            const toDateInput = document.getElementById('reportToDate');
+            const flightSelect = document.getElementById('reportFlightFilter');
+            const customerSelect = document.getElementById('reportCustomerFilter');
+            
+            if (!fromDateInput || !toDateInput) return;
+            
+            const fromDate = fromDateInput.value;
+            const toDate = toDateInput.value;
+            const flightFilter = flightSelect ? flightSelect.value : '';
+            const customerFilter = customerSelect ? customerSelect.value : '';
+            
+            if (fromDate && toDate && fromDate > toDate) {
+                alert('From date cannot be after To date');
+                return;
+            }
+            
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                const reservations = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    
+                    // Only include FOC guests
+                    if (!data.foc) return;
+                    
+                    // Apply date filter
+                    if (fromDate && toDate) {
+                        const checkDate = data.checkoutDate || data.checkinDate || data.reservationDate;
+                        if (!checkDate) return;
+                        
+                        if (checkDate < fromDate || checkDate > toDate) {
+                            return;
+                        }
+                    }
+                    
+                    // Apply flight filter
+                    if (flightFilter && data.flightHotel !== flightFilter) return;
+                    
+                    // Apply customer filter
+                    if (customerFilter && data.customer !== customerFilter) return;
+                    
+                    reservations.push({ id, ...data });
+                });
+                
+                if (reservations.length === 0) {
+                    alert('No FOC reservations found for the selected criteria.');
+                    return;
+                }
+                
+                this.displayFOCReport(reservations, fromDate, toDate);
+            } catch (error) {
+                console.error('Error generating FOC report:', error);
+                alert('Error generating FOC report. Please try again.');
+            }
+        }
+
         displayReport(reservations, fromDate, toDate) {
             const printWindow = window.open('', '_blank');
             
@@ -3303,13 +3561,21 @@
                 day: 'numeric'
             });
             
-            // Group by customer
-            const reservationsByCustomer = {};
+            // Calculate statistics
+            let totalGuests = reservations.length;
+            let checkedIn = 0;
+            let checkedOut = 0;
+            let noShow = 0;
+            let reserved = 0;
+            let focCount = 0;
+            
             reservations.forEach(res => {
-                if (!reservationsByCustomer[res.customer]) {
-                    reservationsByCustomer[res.customer] = [];
-                }
-                reservationsByCustomer[res.customer].push(res);
+                if (res.status === 'checked-in') checkedIn++;
+                else if (res.status === 'checked-out') checkedOut++;
+                else if (res.status === 'no-show') noShow++;
+                else if (res.status === 'reserved') reserved++;
+                
+                if (res.foc) focCount++;
             });
             
             let reportHTML = `
@@ -3432,6 +3698,23 @@
                             .no-print {
                                 display: none;
                             }
+                            .status-badge {
+                                font-size: 9px;
+                                padding: 2px 6px;
+                                border-radius: 10px;
+                                display: inline-block;
+                            }
+                            .status-reserved { background-color: #feebc8; color: #9c4221; }
+                            .status-checkedin { background-color: #c6f6d5; color: #22543d; }
+                            .status-checkedout { background-color: #bee3f8; color: #2a4365; }
+                            .status-noshow { background-color: #fed7d7; color: #742a2a; }
+                            .foc-badge {
+                                background-color: #9ae6b4;
+                                color: #22543d;
+                                font-size: 9px;
+                                padding: 1px 5px;
+                                border-radius: 8px;
+                            }
                         }
                         @media screen {
                             body {
@@ -3543,6 +3826,23 @@
                                 background: #f8f9fa;
                                 border-radius: 5px;
                             }
+                            .status-badge {
+                                font-size: 10px;
+                                padding: 3px 8px;
+                                border-radius: 12px;
+                                display: inline-block;
+                            }
+                            .status-reserved { background-color: #feebc8; color: #9c4221; }
+                            .status-checkedin { background-color: #c6f6d5; color: #22543d; }
+                            .status-checkedout { background-color: #bee3f8; color: #2a4365; }
+                            .status-noshow { background-color: #fed7d7; color: #742a2a; }
+                            .foc-badge {
+                                background-color: #9ae6b4;
+                                color: #22543d;
+                                font-size: 10px;
+                                padding: 2px 6px;
+                                border-radius: 10px;
+                            }
                         }
                     </style>
                 </head>
@@ -3565,7 +3865,7 @@
                             
                             <div class="report-details">
                                 <div class="detail-row">
-                                    <div class="detail-label">Date:</div>
+                                    <div class="detail-label">Report Date:</div>
                                     <div class="detail-value">${currentDate}</div>
                                 </div>
                                 ${fromDate && toDate ? `
@@ -3576,6 +3876,411 @@
                                 ` : ''}
                                 <div class="detail-row">
                                     <div class="detail-label">Total Records:</div>
+                                    <div class="detail-value">${totalGuests}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Status Breakdown:</div>
+                                    <div class="detail-value">
+                                        Checked-In: ${checkedIn} | Checked-Out: ${checkedOut} | 
+                                        No-Show: ${noShow} | Reserved: ${reserved} | FOC: ${focCount}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Content -->
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Guest Name</th>
+                                    <th>Customer</th>
+                                    <th>Flight/Hotel</th>
+                                    <th>STA/ETA</th>
+                                    <th>Direction</th>
+                                    <th>Nationality</th>
+                                    <th>Reservation Date</th>
+                                    <th>Check-In</th>
+                                    <th>Check-Out</th>
+                                    <th>Status</th>
+                                    <th>FOC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            reservations.forEach(res => {
+                let statusBadge = '';
+                if (res.status === 'checked-in') {
+                    statusBadge = '<span class="status-badge status-checkedin">Checked-In</span>';
+                } else if (res.status === 'checked-out') {
+                    statusBadge = '<span class="status-badge status-checkedout">Checked-Out</span>';
+                } else if (res.status === 'no-show') {
+                    statusBadge = '<span class="status-badge status-noshow">No-Show</span>';
+                } else {
+                    statusBadge = '<span class="status-badge status-reserved">Reserved</span>';
+                }
+                
+                const focBadge = res.foc ? '<span class="foc-badge">FOC</span>' : '';
+                
+                reportHTML += `
+                    <tr>
+                        <td>${res.guestName}</td>
+                        <td>${res.customer}</td>
+                        <td>${res.flightHotel}</td>
+                        <td>${res.sta}</td>
+                        <td>${res.direction}</td>
+                        <td>${res.nationality}</td>
+                        <td>${res.reservationDate}</td>
+                        <td>${res.checkinTime || '-'}</td>
+                        <td>${res.checkoutTime || '-'}</td>
+                        <td>${statusBadge}</td>
+                        <td>${focBadge}</td>
+                    </tr>
+                `;
+            });
+            
+            reportHTML += `
+                            </tbody>
+                        </table>
+                        
+                        <!-- Footer Signatures -->
+                        <div class="footer">
+                            <div class="signature-section">
+                                <div class="detail-row">
+                                    <div class="detail-label">Prepared by:</div>
+                                    <div class="detail-value">${this.currentUser.name}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">RC No:</div>
+                                    <div class="detail-value">${this.currentUser.RCNo}</div>
+                                </div>
+                                <div class="signature-line">Signature</div>
+                            </div>
+                            
+                            <div class="signature-section" style="float: right;">
+                                <div class="detail-row">
+                                    <div class="detail-label">Checked by:</div>
+                                    <div class="detail-value">_____________________</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">RC No:</div>
+                                    <div class="detail-value">_____________________</div>
+                                </div>
+                                <div class="signature-line">Signature</div>
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        
+                        <!-- Print Buttons (only for screen) -->
+                        <div class="print-buttons no-print">
+                            <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                                Print Report
+                            </button>
+                            <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Close Window
+                            </button>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(reportHTML);
+            printWindow.document.close();
+            printWindow.focus();
+        }
+
+        displayNoShowReport(reservations, fromDate, toDate) {
+            const printWindow = window.open('', '_blank');
+            
+            const currentDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            let reportHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>No-Show Report - Vilu Lounge</title>
+                    <style>
+                        @media print {
+                            @page {
+                                size: A4;
+                                margin: 15mm;
+                            }
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 11px;
+                                color: #000;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .report-container {
+                                width: 100%;
+                            }
+                            .header {
+                                margin-bottom: 20px;
+                                padding-bottom: 15px;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            .logo-address-section {
+                                width: 100%;
+                                margin-bottom: 15px;
+                            }
+                            .company-logo {
+                                width: 100px;
+                                height: auto;
+                                margin-bottom: 10px;
+                                display: block;
+                            }
+                            .company-info {
+                                text-align: left;
+                                font-size: 11px;
+                                line-height: 1.3;
+                            }
+                            .company-name {
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin: 0 0 3px 0;
+                                color: #2c5282;
+                            }
+                            .company-address {
+                                font-size: 10px;
+                                margin: 0 0 2px 0;
+                            }
+                            .report-title {
+                                text-align: center;
+                                font-size: 14px;
+                                font-weight: bold;
+                                margin: 10px 0;
+                                color: #742a2a;
+                            }
+                            .report-details {
+                                margin-top: 15px;
+                                padding-top: 10px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .detail-row {
+                                display: flex;
+                                margin-bottom: 4px;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                width: 100px;
+                            }
+                            .detail-value {
+                                flex: 1;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 10px 0 15px 0;
+                                page-break-inside: avoid;
+                            }
+                            th {
+                                background-color: #fed7d7;
+                                color: #742a2a;
+                                padding: 6px 4px;
+                                text-align: left;
+                                border: 1px solid #ddd;
+                                font-size: 10px;
+                                font-weight: bold;
+                            }
+                            td {
+                                padding: 5px 4px;
+                                border: 1px solid #ddd;
+                                font-size: 10px;
+                            }
+                            .customer-section {
+                                margin-bottom: 20px;
+                                page-break-inside: avoid;
+                            }
+                            .customer-name {
+                                background-color: #fed7d7;
+                                padding: 6px 10px;
+                                font-weight: bold;
+                                margin-bottom: 8px;
+                                font-size: 12px;
+                                border-left: 3px solid #f56565;
+                                color: #742a2a;
+                            }
+                            .footer {
+                                margin-top: 30px;
+                                page-break-inside: avoid;
+                                padding-top: 15px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .signature-section {
+                                width: 45%;
+                                display: inline-block;
+                                vertical-align: top;
+                            }
+                            .signature-line {
+                                margin-top: 30px;
+                                border-top: 1px solid #000;
+                                width: 180px;
+                                padding-top: 4px;
+                                font-size: 10px;
+                            }
+                            .no-print {
+                                display: none;
+                            }
+                        }
+                        @media screen {
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 12px;
+                                padding: 20px;
+                                background: #f5f5f5;
+                            }
+                            .report-container {
+                                max-width: 210mm;
+                                margin: 0 auto;
+                                background: white;
+                                padding: 20px;
+                                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                            }
+                            .header {
+                                margin-bottom: 20px;
+                                padding-bottom: 20px;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            .logo-address-section {
+                                width: 100%;
+                                margin-bottom: 15px;
+                            }
+                            .company-logo {
+                                width: 120px;
+                                height: auto;
+                                margin-bottom: 10px;
+                                display: block;
+                            }
+                            .company-info {
+                                text-align: left;
+                                font-size: 12px;
+                                line-height: 1.4;
+                            }
+                            .company-name {
+                                font-size: 18px;
+                                font-weight: bold;
+                                margin: 0 0 5px 0;
+                                color: #2c5282;
+                            }
+                            .company-address {
+                                font-size: 11px;
+                                margin: 0 0 2px 0;
+                            }
+                            .report-title {
+                                text-align: center;
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin: 15px 0;
+                                color: #742a2a;
+                            }
+                            .report-details {
+                                margin-top: 15px;
+                                padding-top: 12px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .detail-row {
+                                display: flex;
+                                margin-bottom: 5px;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                width: 120px;
+                            }
+                            .detail-value {
+                                flex: 1;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 15px 0 20px 0;
+                            }
+                            th {
+                                background-color: #fed7d7;
+                                color: #742a2a;
+                                padding: 8px;
+                                text-align: left;
+                                border: 1px solid #ddd;
+                            }
+                            td {
+                                padding: 7px;
+                                border: 1px solid #ddd;
+                            }
+                            .customer-section {
+                                margin-bottom: 25px;
+                            }
+                            .customer-name {
+                                background-color: #fed7d7;
+                                padding: 8px 12px;
+                                font-weight: bold;
+                                margin-bottom: 10px;
+                                font-size: 13px;
+                                border-left: 4px solid #f56565;
+                                color: #742a2a;
+                            }
+                            .footer {
+                                margin-top: 40px;
+                                padding-top: 20px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .signature-section {
+                                width: 45%;
+                                display: inline-block;
+                                vertical-align: top;
+                            }
+                            .signature-line {
+                                margin-top: 40px;
+                                border-top: 1px solid #000;
+                                width: 200px;
+                                padding-top: 5px;
+                            }
+                            .print-buttons {
+                                text-align: center;
+                                margin-top: 20px;
+                                padding: 20px;
+                                background: #f8f9fa;
+                                border-radius: 5px;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="report-container">
+                        <!-- Header -->
+                        <div class="header">
+                            <div class="logo-address-section">
+                                <img src="macl.png" alt="MACL Logo" class="company-logo">
+                                <div class="company-info">
+                                    <div class="company-name">Vilu Business Lounge</div>
+                                    <div class="company-address">Seaplane Terminal</div>
+                                    <div class="company-address">Velana International Airport</div>
+                                    <div class="company-address">Hulhule: 22000</div>
+                                    <div class="company-address">Republic of Maldives</div>
+                                    <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
+                                    <div class="company-address">W: www.macl.aero / E: vilu.lounge@macl.aero</div>
+                                </div>
+                            </div>
+                            
+                            <div class="report-title">NO-SHOW REPORT</div>
+                            
+                            <div class="report-details">
+                                <div class="detail-row">
+                                    <div class="detail-label">Report Date:</div>
+                                    <div class="detail-value">${currentDate}</div>
+                                </div>
+                                ${fromDate && toDate ? `
+                                <div class="detail-row">
+                                    <div class="detail-label">Period:</div>
+                                    <div class="detail-value">${fromDate} to ${toDate}</div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-row">
+                                    <div class="detail-label">Total No-Shows:</div>
                                     <div class="detail-value">${reservations.length}</div>
                                 </div>
                             </div>
@@ -3584,29 +4289,40 @@
                         <!-- Report Content -->
             `;
             
+            // Group by customer
+            const reservationsByCustomer = {};
+            reservations.forEach(res => {
+                if (!reservationsByCustomer[res.customer]) {
+                    reservationsByCustomer[res.customer] = [];
+                }
+                reservationsByCustomer[res.customer].push(res);
+            });
+            
             Object.entries(reservationsByCustomer).forEach(([customer, customerReservations]) => {
                 reportHTML += `
                     <div class="customer-section">
-                        <div class="customer-name">Customer: ${customer} (${customerReservations.length} records)</div>
+                        <div class="customer-name">Customer: ${customer} (${customerReservations.length} no-shows)</div>
                         
                         <table>
                             <thead>
                                 <tr>
                                     <th>Guest Name</th>
                                     <th>Flight/Hotel</th>
-                                    <th>STA</th>
+                                    <th>STA/ETA</th>
                                     <th>Direction</th>
                                     <th>Nationality</th>
                                     <th>Reservation Date</th>
-                                    <th>Check-In</th>
-                                    <th>Check-Out</th>
-                                    <th>Status</th>
+                                    <th>No-Show Reason</th>
+                                    <th>Marked By</th>
+                                    <th>FOC</th>
                                 </tr>
                             </thead>
                             <tbody>
                 `;
                 
                 customerReservations.forEach(res => {
+                    const focBadge = res.foc ? '<span style="background-color: #9ae6b4; color: #22543d; padding: 1px 5px; border-radius: 8px; font-size: 9px;">FOC</span>' : '';
+                    
                     reportHTML += `
                         <tr>
                             <td>${res.guestName}</td>
@@ -3615,9 +4331,9 @@
                             <td>${res.direction}</td>
                             <td>${res.nationality}</td>
                             <td>${res.reservationDate}</td>
-                            <td>${res.checkinTime || '-'}</td>
-                            <td>${res.checkoutTime || '-'}</td>
-                            <td>${res.status}</td>
+                            <td>${res.noShowReason || 'Not specified'}</td>
+                            <td>${res.noShowMarkedBy || 'System'}</td>
+                            <td>${focBadge}</td>
                         </tr>
                     `;
                 });
@@ -3677,6 +4393,438 @@
             printWindow.focus();
         }
 
+        displayFOCReport(reservations, fromDate, toDate) {
+            const printWindow = window.open('', '_blank');
+            
+            const currentDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            let reportHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>FOC Report - Vilu Lounge</title>
+                    <style>
+                        @media print {
+                            @page {
+                                size: A4;
+                                margin: 15mm;
+                            }
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 11px;
+                                color: #000;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .report-container {
+                                width: 100%;
+                            }
+                            .header {
+                                margin-bottom: 20px;
+                                padding-bottom: 15px;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            .logo-address-section {
+                                width: 100%;
+                                margin-bottom: 15px;
+                            }
+                            .company-logo {
+                                width: 100px;
+                                height: auto;
+                                margin-bottom: 10px;
+                                display: block;
+                            }
+                            .company-info {
+                                text-align: left;
+                                font-size: 11px;
+                                line-height: 1.3;
+                            }
+                            .company-name {
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin: 0 0 3px 0;
+                                color: #2c5282;
+                            }
+                            .company-address {
+                                font-size: 10px;
+                                margin: 0 0 2px 0;
+                            }
+                            .report-title {
+                                text-align: center;
+                                font-size: 14px;
+                                font-weight: bold;
+                                margin: 10px 0;
+                                color: #22543d;
+                            }
+                            .report-details {
+                                margin-top: 15px;
+                                padding-top: 10px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .detail-row {
+                                display: flex;
+                                margin-bottom: 4px;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                width: 100px;
+                            }
+                            .detail-value {
+                                flex: 1;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 10px 0 15px 0;
+                                page-break-inside: avoid;
+                            }
+                            th {
+                                background-color: #c6f6d5;
+                                color: #22543d;
+                                padding: 6px 4px;
+                                text-align: left;
+                                border: 1px solid #ddd;
+                                font-size: 10px;
+                                font-weight: bold;
+                            }
+                            td {
+                                padding: 5px 4px;
+                                border: 1px solid #ddd;
+                                font-size: 10px;
+                            }
+                            .customer-section {
+                                margin-bottom: 20px;
+                                page-break-inside: avoid;
+                            }
+                            .customer-name {
+                                background-color: #c6f6d5;
+                                padding: 6px 10px;
+                                font-weight: bold;
+                                margin-bottom: 8px;
+                                font-size: 12px;
+                                border-left: 3px solid #48bb78;
+                                color: #22543d;
+                            }
+                            .footer {
+                                margin-top: 30px;
+                                page-break-inside: avoid;
+                                padding-top: 15px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .signature-section {
+                                width: 45%;
+                                display: inline-block;
+                                vertical-align: top;
+                            }
+                            .signature-line {
+                                margin-top: 30px;
+                                border-top: 1px solid #000;
+                                width: 180px;
+                                padding-top: 4px;
+                                font-size: 10px;
+                            }
+                            .no-print {
+                                display: none;
+                            }
+                            .status-badge {
+                                font-size: 9px;
+                                padding: 2px 6px;
+                                border-radius: 10px;
+                                display: inline-block;
+                            }
+                            .status-reserved { background-color: #feebc8; color: #9c4221; }
+                            .status-checkedin { background-color: #bee3f8; color: #2a4365; }
+                            .status-checkedout { background-color: #bee3f8; color: #2a4365; }
+                            .status-noshow { background-color: #fed7d7; color: #742a2a; }
+                        }
+                        @media screen {
+                            body {
+                                font-family: Arial, sans-serif;
+                                font-size: 12px;
+                                padding: 20px;
+                                background: #f5f5f5;
+                            }
+                            .report-container {
+                                max-width: 210mm;
+                                margin: 0 auto;
+                                background: white;
+                                padding: 20px;
+                                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                            }
+                            .header {
+                                margin-bottom: 20px;
+                                padding-bottom: 20px;
+                                border-bottom: 1px solid #ddd;
+                            }
+                            .logo-address-section {
+                                width: 100%;
+                                margin-bottom: 15px;
+                            }
+                            .company-logo {
+                                width: 120px;
+                                height: auto;
+                                margin-bottom: 10px;
+                                display: block;
+                            }
+                            .company-info {
+                                text-align: left;
+                                font-size: 12px;
+                                line-height: 1.4;
+                            }
+                            .company-name {
+                                font-size: 18px;
+                                font-weight: bold;
+                                margin: 0 0 5px 0;
+                                color: #2c5282;
+                            }
+                            .company-address {
+                                font-size: 11px;
+                                margin: 0 0 2px 0;
+                            }
+                            .report-title {
+                                text-align: center;
+                                font-size: 16px;
+                                font-weight: bold;
+                                margin: 15px 0;
+                                color: #22543d;
+                            }
+                            .report-details {
+                                margin-top: 15px;
+                                padding-top: 12px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .detail-row {
+                                display: flex;
+                                margin-bottom: 5px;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                width: 120px;
+                            }
+                            .detail-value {
+                                flex: 1;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 15px 0 20px 0;
+                            }
+                            th {
+                                background-color: #c6f6d5;
+                                color: #22543d;
+                                padding: 8px;
+                                text-align: left;
+                                border: 1px solid #ddd;
+                            }
+                            td {
+                                padding: 7px;
+                                border: 1px solid #ddd;
+                            }
+                            .customer-section {
+                                margin-bottom: 25px;
+                            }
+                            .customer-name {
+                                background-color: #c6f6d5;
+                                padding: 8px 12px;
+                                font-weight: bold;
+                                margin-bottom: 10px;
+                                font-size: 13px;
+                                border-left: 4px solid #48bb78;
+                                color: #22543d;
+                            }
+                            .footer {
+                                margin-top: 40px;
+                                padding-top: 20px;
+                                border-top: 1px solid #ddd;
+                            }
+                            .signature-section {
+                                width: 45%;
+                                display: inline-block;
+                                vertical-align: top;
+                            }
+                            .signature-line {
+                                margin-top: 40px;
+                                border-top: 1px solid #000;
+                                width: 200px;
+                                padding-top: 5px;
+                            }
+                            .print-buttons {
+                                text-align: center;
+                                margin-top: 20px;
+                                padding: 20px;
+                                background: #f8f9fa;
+                                border-radius: 5px;
+                            }
+                            .status-badge {
+                                font-size: 10px;
+                                padding: 3px 8px;
+                                border-radius: 12px;
+                                display: inline-block;
+                            }
+                            .status-reserved { background-color: #feebc8; color: #9c4221; }
+                            .status-checkedin { background-color: #bee3f8; color: #2a4365; }
+                            .status-checkedout { background-color: #bee3f8; color: #2a4365; }
+                            .status-noshow { background-color: #fed7d7; color: #742a2a; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="report-container">
+                        <!-- Header -->
+                        <div class="header">
+                            <div class="logo-address-section">
+                                <img src="macl.png" alt="MACL Logo" class="company-logo">
+                                <div class="company-info">
+                                    <div class="company-name">Vilu Business Lounge</div>
+                                    <div class="company-address">Seaplane Terminal</div>
+                                    <div class="company-address">Velana International Airport</div>
+                                    <div class="company-address">Hulhule: 22000</div>
+                                    <div class="company-address">Republic of Maldives</div>
+                                    <div class="company-address">T: 3337117 / 3331773 | M: 7288007</div>
+                                    <div class="company-address">W: www.macl.aero / E: vilu.lounge@macl.aero</div>
+                                </div>
+                            </div>
+                            
+                            <div class="report-title">FREE OF CHARGE (FOC) REPORT</div>
+                            
+                            <div class="report-details">
+                                <div class="detail-row">
+                                    <div class="detail-label">Report Date:</div>
+                                    <div class="detail-value">${currentDate}</div>
+                                </div>
+                                ${fromDate && toDate ? `
+                                <div class="detail-row">
+                                    <div class="detail-label">Period:</div>
+                                    <div class="detail-value">${fromDate} to ${toDate}</div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-row">
+                                    <div class="detail-label">Total FOC Guests:</div>
+                                    <div class="detail-value">${reservations.length}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Report Content -->
+            `;
+            
+            // Group by customer
+            const reservationsByCustomer = {};
+            reservations.forEach(res => {
+                if (!reservationsByCustomer[res.customer]) {
+                    reservationsByCustomer[res.customer] = [];
+                }
+                reservationsByCustomer[res.customer].push(res);
+            });
+            
+            Object.entries(reservationsByCustomer).forEach(([customer, customerReservations]) => {
+                reportHTML += `
+                    <div class="customer-section">
+                        <div class="customer-name">Customer: ${customer} (${customerReservations.length} FOC guests)</div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Guest Name</th>
+                                    <th>Flight/Hotel</th>
+                                    <th>STA/ETA</th>
+                                    <th>Direction</th>
+                                    <th>Nationality</th>
+                                    <th>Reservation Date</th>
+                                    <th>Check-In</th>
+                                    <th>Check-Out</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                customerReservations.forEach(res => {
+                    let statusBadge = '';
+                    if (res.status === 'checked-in') {
+                        statusBadge = '<span class="status-badge status-checkedin">Checked-In</span>';
+                    } else if (res.status === 'checked-out') {
+                        statusBadge = '<span class="status-badge status-checkedout">Checked-Out</span>';
+                    } else if (res.status === 'no-show') {
+                        statusBadge = '<span class="status-badge status-noshow">No-Show</span>';
+                    } else {
+                        statusBadge = '<span class="status-badge status-reserved">Reserved</span>';
+                    }
+                    
+                    reportHTML += `
+                        <tr>
+                            <td>${res.guestName}</td>
+                            <td>${res.flightHotel}</td>
+                            <td>${res.sta}</td>
+                            <td>${res.direction}</td>
+                            <td>${res.nationality}</td>
+                            <td>${res.reservationDate}</td>
+                            <td>${res.checkinTime || '-'}</td>
+                            <td>${res.checkoutTime || '-'}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                });
+                
+                reportHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            reportHTML += `
+                        <!-- Footer Signatures -->
+                        <div class="footer">
+                            <div class="signature-section">
+                                <div class="detail-row">
+                                    <div class="detail-label">Prepared by:</div>
+                                    <div class="detail-value">${this.currentUser.name}</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">RC No:</div>
+                                    <div class="detail-value">${this.currentUser.RCNo}</div>
+                                </div>
+                                <div class="signature-line">Signature</div>
+                            </div>
+                            
+                            <div class="signature-section" style="float: right;">
+                                <div class="detail-row">
+                                    <div class="detail-label">Approved by:</div>
+                                    <div class="detail-value">_____________________</div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Designation:</div>
+                                    <div class="detail-value">_____________________</div>
+                                </div>
+                                <div class="signature-line">Signature</div>
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        
+                        <!-- Print Buttons (only for screen) -->
+                        <div class="print-buttons no-print">
+                            <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px;">
+                                Print Report
+                            </button>
+                            <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Close Window
+                            </button>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(reportHTML);
+            printWindow.document.close();
+            printWindow.focus();
+        }
+
         async generateChargeSheet() {
             const fromDateInput = document.getElementById('reportFromDate');
             const toDateInput = document.getElementById('reportToDate');
@@ -3699,9 +4847,12 @@
                 const snapshot = await this.db.collection('reservations').get();
                 const reservations = [];
                 
-                // Get checked-in reservations only
+                // Get checked-in reservations only (non-FOC)
                 snapshot.forEach(doc => {
                     const data = doc.data();
+                    
+                    // Skip FOC guests
+                    if (data.foc) return;
                     
                     // Apply date filter
                     if (fromDate && toDate) {
@@ -3726,7 +4877,7 @@
                 });
                 
                 if (reservations.length === 0) {
-                    alert('No checked-in guests found for the selected criteria.');
+                    alert('No chargeable guests found for the selected criteria.');
                     return;
                 }
                 
@@ -3766,14 +4917,25 @@
                 }
                 
                 // Add to direction count
-                chargeData[res.customer][res.direction.toLowerCase()]++;
-                chargeData[res.customer].total++;
+                const direction = res.direction ? res.direction.toLowerCase() : 'arrival';
+                if (direction === 'arrival') {
+                    chargeData[res.customer].arrival++;
+                    totalArrival++;
+                } else if (direction === 'departure') {
+                    chargeData[res.customer].departure++;
+                    totalDeparture++;
+                } else if (direction === 'transit') {
+                    chargeData[res.customer].transit++;
+                    totalTransit++;
+                } else if (direction === 'local') {
+                    chargeData[res.customer].local++;
+                    totalLocal++;
+                } else {
+                    chargeData[res.customer].arrival++;
+                    totalArrival++;
+                }
                 
-                // Add to totals
-                if (res.direction.toLowerCase() === 'arrival') totalArrival++;
-                else if (res.direction.toLowerCase() === 'departure') totalDeparture++;
-                else if (res.direction.toLowerCase() === 'transit') totalTransit++;
-                else if (res.direction.toLowerCase() === 'local') totalLocal++;
+                chargeData[res.customer].total++;
                 grandTotal++;
             });
             
@@ -4040,7 +5202,7 @@
                                 <div class="company-address">T: 3337117 / 3331773 | M: 7288007 | E: vilu.lounge@macl.aero</div>
                             </div>
                             
-                            <div class="report-title">Charge Sheet</div>
+                            <div class="report-title">Charge Sheet (Non-FOC Guests Only)</div>
                             
                             <div class="report-details">
                                 <div class="detail-row">
@@ -4054,8 +5216,8 @@
                                 </div>
                                 ` : ''}
                                 <div class="detail-row">
-                                    <div class="detail-label">Total Guests:</div>
-                                    <div class="detail-value">${reservations.length}</div>
+                                    <div class="detail-label">Total Chargeable Guests:</div>
+                                    <div class="detail-value">${grandTotal}</div>
                                 </div>
                             </div>
                         </div>
@@ -4134,7 +5296,7 @@
                                 <span>${totalLocal}</span>
                             </div>
                             <div class="breakdown-row breakdown-total">
-                                <span>Total Guests:</span>
+                                <span>Total Chargeable Guests:</span>
                                 <span>${grandTotal}</span>
                             </div>
                             <div class="breakdown-row breakdown-total">
@@ -4190,7 +5352,7 @@
             printWindow.focus();
         }
 
-        // Excel Upload Functions - VILU COMPATIBLE VERSION
+        // Excel Upload Functions
         handleExcelUpload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -4215,10 +5377,8 @@
                         return;
                     }
                     
-                    console.log('Excel data loaded (raw):', jsonData);
-                    
-                    // Process VILU format specifically
-                    const processedData = this.processViluExcelFormat(jsonData);
+                    // Process Excel data
+                    const processedData = this.processExcelData(jsonData);
                     this.excelData = processedData;
                     this.displayExcelPreview(processedData);
                 } catch (error) {
@@ -4232,6 +5392,111 @@
             };
             
             reader.readAsArrayBuffer(file);
+        }
+
+        processExcelData(data) {
+            console.log('Processing Excel data:', data);
+            
+            const reservations = [];
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Find header row
+            let headerRowIndex = -1;
+            for (let i = 0; i < Math.min(10, data.length); i++) {
+                const row = data[i];
+                if (row && row.length > 0) {
+                    const firstCell = row[0] ? row[0].toString().toLowerCase() : '';
+                    if (firstCell.includes('guest') || firstCell.includes('name')) {
+                        headerRowIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            if (headerRowIndex === -1) {
+                // Assume first row is header
+                headerRowIndex = 0;
+            }
+            
+            // Map column indices
+            const headers = data[headerRowIndex];
+            const columnMap = {
+                guestName: this.findColumnIndex(headers, ['guest', 'name', 'guest name']),
+                customer: this.findColumnIndex(headers, ['customer', 'company', 'airline']),
+                flightHotel: this.findColumnIndex(headers, ['flight', 'hotel', 'flight/hotel', 'flight no']),
+                sta: this.findColumnIndex(headers, ['sta', 'eta', 'time', 'flight time']),
+                direction: this.findColumnIndex(headers, ['direction', 'type', 'arrival/departure']),
+                nationality: this.findColumnIndex(headers, ['nationality', 'country', 'passport country']),
+                reservationDate: this.findColumnIndex(headers, ['date', 'reservation date', 'flight date']),
+                foc: this.findColumnIndex(headers, ['foc', 'free', 'charge', 'free of charge'])
+            };
+            
+            console.log('Column map:', columnMap);
+            
+            // Process data rows
+            for (let i = headerRowIndex + 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length === 0) continue;
+                
+                const guestName = columnMap.guestName !== -1 ? row[columnMap.guestName] : '';
+                if (!guestName || guestName.toString().trim() === '') continue;
+                
+                const customer = columnMap.customer !== -1 ? row[columnMap.customer] : 'Unknown Customer';
+                const flightHotel = columnMap.flightHotel !== -1 ? row[columnMap.flightHotel] : 'Unknown Flight';
+                const rawTime = columnMap.sta !== -1 ? row[columnMap.sta] : '';
+                const rawDate = columnMap.reservationDate !== -1 ? row[columnMap.reservationDate] : today;
+                const direction = columnMap.direction !== -1 ? row[columnMap.direction] : 'Arrival';
+                const nationality = columnMap.nationality !== -1 ? row[columnMap.nationality] : '';
+                const rawFOC = columnMap.foc !== -1 ? row[columnMap.foc] : '';
+                
+                const parsedDate = this.parseDate(rawDate || today);
+                const parsedTime = this.parseTime(rawTime || '00:00');
+                const isFOC = rawFOC ? rawFOC.toString().toLowerCase().includes('foc') || 
+                    rawFOC.toString().toLowerCase().includes('free') || 
+                    rawFOC.toString().toLowerCase() === 'true' || 
+                    rawFOC.toString().toLowerCase() === 'yes' : false;
+                
+                const reservation = {
+                    customer: customer.toString().trim(),
+                    reservationDate: parsedDate,
+                    flightHotel: flightHotel.toString().trim(),
+                    sta: parsedTime,
+                    direction: direction.toString().trim(),
+                    guestName: guestName.toString().trim(),
+                    nationality: nationality.toString().trim(),
+                    foc: isFOC,
+                    remarks: `Imported from Excel`,
+                    status: 'reserved',
+                    createdAt: new Date().toISOString(),
+                    createdBy: this.currentUser.username,
+                    source: 'excel_import'
+                };
+                
+                console.log('Created reservation:', reservation);
+                
+                if (this.validateReservation(reservation)) {
+                    reservations.push(reservation);
+                } else {
+                    console.log('Invalid reservation skipped:', reservation);
+                }
+            }
+            
+            console.log(`Found ${reservations.length} reservations in Excel file`);
+            return reservations;
+        }
+
+        findColumnIndex(headers, searchTerms) {
+            if (!headers) return -1;
+            
+            for (let i = 0; i < headers.length; i++) {
+                const header = headers[i] ? headers[i].toString().toLowerCase() : '';
+                for (const term of searchTerms) {
+                    if (header.includes(term.toLowerCase())) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
         }
 
         parseTime(timeValue) {
@@ -4373,135 +5638,6 @@
             return new Date().toISOString().split('T')[0];
         }
 
-        processViluExcelFormat(data) {
-            console.log('Processing VILU Excel format with raw data:', data);
-            
-            const reservations = [];
-            const today = new Date().toISOString().split('T')[0];
-            
-            let contactPerson = '';
-            let guestSectionStart = -1;
-            
-            for (let i = 0; i < data.length; i++) {
-                const row = data[i];
-                
-                if (!row || row.length === 0) continue;
-                
-                for (let j = 0; j < row.length; j++) {
-                    const cell = row[j];
-                    if (typeof cell === 'string') {
-                        const cellLower = cell.toLowerCase().trim();
-                        
-                        if (cellLower === 'contact person:' || cellLower.includes('contact person')) {
-                            if (cell.includes(':')) {
-                                const parts = cell.split(':');
-                                if (parts.length > 1) {
-                                    contactPerson = parts[1].trim();
-                                    if (!contactPerson) {
-                                        for (let k = j + 1; k < row.length; k++) {
-                                            if (row[k] && row[k].toString().trim() !== '') {
-                                                contactPerson = row[k].toString().trim();
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                for (let k = j + 1; k < row.length; k++) {
-                                    if (row[k] && row[k].toString().trim() !== '') {
-                                        contactPerson = row[k].toString().trim();
-                                        break;
-                                    }
-                                }
-                            }
-                            console.log('Found contact person:', contactPerson, 'at row', i, 'col', j);
-                        }
-                        
-                        if (cellLower === 'guest name' && guestSectionStart === -1) {
-                            guestSectionStart = i;
-                            console.log('Guest section header found at row:', i, 'cell:', j);
-                        }
-                    }
-                }
-            }
-            
-            const customerName = contactPerson || 'Unknown Customer';
-            
-            console.log('Using customer:', customerName);
-            console.log('Guest section starts at row:', guestSectionStart);
-            
-            if (guestSectionStart !== -1) {
-                const dataStartRow = guestSectionStart + 2;
-                
-                console.log('Processing guest data from row:', dataStartRow);
-                
-                for (let i = dataStartRow; i < data.length; i++) {
-                    const row = data[i];
-                    
-                    if (!row || row.length < 1) continue;
-                    
-                    const guestName = row[0];
-                    
-                    if (!guestName || guestName.toString().trim() === '') {
-                        continue;
-                    }
-                    
-                    console.log('Processing guest row', i, ':', row);
-                    
-                    let direction = 'Arrival';
-                    let flightHotel = '';
-                    let rawTime = '';
-                    let rawDate = '';
-                    let nationality = '';
-                    
-                    const hasDepartureInfo = row[15] && row[15].toString().trim() !== '';
-                    
-                    if (hasDepartureInfo) {
-                        direction = 'Departure';
-                        flightHotel = row[15] ? row[15].toString().trim() : '';
-                        rawTime = row[16] ? row[16].toString().trim() : '';
-                        rawDate = row[17] ? row[17].toString().trim() : '';
-                    } else {
-                        direction = 'Arrival';
-                        flightHotel = row[12] ? row[12].toString().trim() : '';
-                        rawTime = row[13] ? row[13].toString().trim() : '';
-                        rawDate = row[14] ? row[14].toString().trim() : '';
-                    }
-                    
-                    nationality = row[9] ? row[9].toString().trim() : '';
-                    
-                    const parsedDate = this.parseDate(rawDate || today);
-                    const parsedTime = this.parseTime(rawTime || '00:00');
-                    
-                    const reservation = {
-                        customer: customerName,
-                        reservationDate: parsedDate,
-                        flightHotel: flightHotel || 'Unknown Flight',
-                        sta: parsedTime,
-                        direction: direction,
-                        guestName: guestName.toString().trim(),
-                        nationality: nationality,
-                        remarks: `Imported from VILU Excel - ${direction}: ${flightHotel || 'No flight info'}`,
-                        status: 'reserved',
-                        createdAt: new Date().toISOString(),
-                        createdBy: this.currentUser.username,
-                        source: 'vilu_excel_import'
-                    };
-                    
-                    console.log('Created reservation:', reservation);
-                    
-                    if (this.validateReservation(reservation)) {
-                        reservations.push(reservation);
-                    } else {
-                        console.log('Invalid reservation skipped:', reservation);
-                    }
-                }
-            }
-            
-            console.log(`Found ${reservations.length} reservations in VILU format`);
-            return reservations;
-        }
-
         validateReservation(reservation) {
             const requiredFields = ['customer', 'guestName', 'flightHotel'];
             
@@ -4540,8 +5676,8 @@
             
             if (data.length > 0) {
                 const headers = [
-                    'Guest Name', 'Customer', 'Flight/Hotel', 'STA', 
-                    'Direction', 'Nationality', 'Reservation Date', 'Status'
+                    'Guest Name', 'Customer', 'Flight/Hotel', 'STA/ETA', 
+                    'Direction', 'Nationality', 'Reservation Date', 'FOC', 'Status'
                 ];
                 
                 let headerHtml = '<tr>';
@@ -4567,9 +5703,9 @@
                     rowHtml += `<td>${reservation.direction || 'Arrival'}</td>`;
                     rowHtml += `<td>${reservation.nationality || ''}</td>`;
                     rowHtml += `<td>${reservation.reservationDate || ''}</td>`;
+                    rowHtml += `<td>${reservation.foc ? 'Yes' : 'No'}</td>`;
                     rowHtml += `<td style="background-color: ${isValid ? '#d4edda' : '#f8d7da'}">
                         ${isValid ? '✓ Valid' : '✗ Invalid'}
-                        <br><small>${!reservation.flightHotel || reservation.flightHotel === 'Unknown Flight' ? 'No flight' : ''}</small>
                     </td>`;
                     
                     rowHtml += '</tr>';
@@ -4580,7 +5716,7 @@
                 
                 previewBody.innerHTML += `
                     <tr>
-                        <td colspan="8" style="background-color: #e9ecef; font-weight: bold;">
+                        <td colspan="9" style="background-color: #e9ecef; font-weight: bold;">
                             Summary: ${validCount} valid / ${previewLimit} shown (Total: ${data.length} reservations)
                             ${validCount < data.length ? `<br><small>${data.length - validCount} invalid due to missing data</small>` : ''}
                         </td>
@@ -4589,23 +5725,6 @@
                 
                 previewCount.textContent = data.length;
                 previewContainer.classList.remove('d-none');
-                
-                if (data.length > 0) {
-                    const sample = data[0];
-                    const issues = [];
-                    if (!sample.customer || sample.customer === 'Unknown Customer') issues.push('Customer');
-                    if (!sample.flightHotel || sample.flightHotel === 'Unknown Flight') issues.push('Flight');
-                    if (sample.sta === '00:00') issues.push('STA');
-                    
-                    let message = `VILU Excel detected! Found ${data.length} guest entries.\n\nSample entry:\n- Guest: ${sample.guestName}\n- Customer: ${sample.customer}\n- Flight: ${sample.flightHotel}\n- STA: ${sample.sta}\n- Date: ${sample.reservationDate}\n- Direction: ${sample.direction}\n- Nationality: ${sample.nationality || '(empty)'}`;
-                    
-                    if (issues.length > 0) {
-                        message += `\n\n⚠️ Issues detected in sample: ${issues.join(', ')}`;
-                        message += `\nPlease check the Excel format matches VILU template.`;
-                    }
-                    
-                    alert(message);
-                }
             }
         }
 
@@ -4667,7 +5786,6 @@
             alert(resultMessage);
             
             this.clearExcelPreview();
-            this.loadRecentReservations();
             this.loadCheckinData();
             this.loadCheckoutData();
             this.loadFlightOptionsForCheckin();
@@ -4687,157 +5805,34 @@
             this.excelData = [];
         }
 
-        debugExcelColumns() {
-            if (this.excelData.length === 0) {
-                alert('No Excel data loaded. Please upload an Excel file first.');
-                return;
-            }
-            
-            console.log('=== EXCEL DATA DEBUG ===');
-            console.log('Total reservations:', this.excelData.length);
-            
-            if (this.excelData.length > 0) {
-                console.log('First reservation:', this.excelData[0]);
-                console.log('Validation result:', this.validateReservation(this.excelData[0]));
-                
-                const timeTestValues = ['07:15 Hrs', '07:15', '0715', '7:15', '7:15 AM', '1430', '14:30', '2:30 PM'];
-                console.log('Time parsing tests:');
-                timeTestValues.forEach(time => {
-                    console.log(`${time} → ${this.parseTime(time)}`);
-                });
-                
-                const dateTestValues = ['2026-01-25 00:00:00', '2026-01-25', '25/01/2026', '01/25/2026'];
-                console.log('Date parsing tests:');
-                dateTestValues.forEach(date => {
-                    console.log(`${date} → ${this.parseDate(date)}`);
-                });
-            }
-            
-            alert('Check browser console (F12) for Excel debug information.');
-        }
-
-        debugViluExcelColumns() {
-            if (!this.excelData || this.excelData.length === 0) {
-                alert('No Excel data loaded. Please upload a VILU Excel file first.');
-                return;
-            }
-            
-            console.log('=== VILU EXCEL DEBUG ===');
-            console.log('Total rows in raw data:', this.excelData.length);
-            
-            console.log('First 30 rows of raw Excel data:');
-            for (let i = 0; i < Math.min(30, this.excelData.length); i++) {
-                const row = this.excelData[i];
-                console.log(`Row ${i}:`, row);
-                
-                if (row && row.length > 0) {
-                    for (let j = 0; j < row.length; j++) {
-                        const cell = row[j];
-                        if (typeof cell === 'string' && cell.toLowerCase().includes('contact person')) {
-                            console.log(`Found "Contact Person" reference at row ${i}, column ${j}:`, cell);
-                            console.log('Full row:', row);
-                        }
-                        if (typeof cell === 'string' && cell.toLowerCase() === 'guest name') {
-                            console.log(`Found "Guest Name" header at row ${i}, column ${j}`);
-                            console.log('Next 5 rows for context:');
-                            for (let k = i; k < Math.min(i + 5, this.excelData.length); k++) {
-                                console.log(`Row ${k}:`, this.excelData[k]);
-                            }
-                        }
-                    }
-                }
-            }
-            
-            const processed = this.processViluExcelFormat(this.excelData);
-            console.log(`Processed ${processed.length} reservations`);
-            
-            if (processed.length > 0) {
-                console.log('First processed reservation:', processed[0]);
-                console.log('Last processed reservation:', processed[processed.length - 1]);
-                
-                let missingCustomer = 0;
-                let missingFlight = 0;
-                let missingTime = 0;
-                
-                processed.forEach(res => {
-                    if (!res.customer || res.customer === 'Unknown Customer') missingCustomer++;
-                    if (!res.flightHotel || res.flightHotel === 'Unknown Flight') missingFlight++;
-                    if (res.sta === '00:00') missingTime++;
-                });
-                
-                console.log(`Issues: ${missingCustomer} missing customer, ${missingFlight} missing flight, ${missingTime} missing time`);
-            }
-            
-            alert('Check browser console (F12) for detailed VILU Excel analysis. Look for "Contact Person" and "Guest Name" sections.');
-        }
-
         downloadExcelTemplate() {
-            const viluTemplate = [
-                ['VILU Business Lounge', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Seaplane Terminal', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Maldives Airports Company Limited', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Velana International Airport', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Hulhule 2200', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Republic of Maldives', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Booking Number:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['VILU BUSINESS LOUNGE SERVICE APPLICATION FORM', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['1- Service Applicant:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Name of Service Applicant:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Contact Person:', 'AIRLINE COMPANY CONTACT', '', '', '', '', 'Telephone/Mobile', '', '', 'Fax', '', '', 'Email', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Billing Address:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Contact Person', '', '', '', '', '', 'Telephone/Mobile', '', '', 'Fax', '', '', 'Email', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['2- Guest Information (if required more space please attach sheets in this format)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Guest Name', '', '', '', '', '', 'Passport No:', '', '', 'Country', '', '', 'Arrival', '', '', 'Departure', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', 'Flight No', 'Flight Time', 'Flight Date', 'Flight No', 'Flight Time', 'Flight Date'],
-                ['Haruka Yazaki', '', '', '', '', '', 'AB123456', '', '', 'Japan', '', '', 'Somerset', '07:15 Hrs', '2026-01-25', '', '', ''],
-                ['Hayato Atagi', '', '', '', '', '', 'CD789012', '', '', 'Japan', '', '', 'Somerset', '07:15 Hrs', '2026-01-25', '', '', ''],
-                ['Frank Johnsen', '', '', '', '', '', 'EF345678', '', '', 'Norway', '', '', 'EK656', '07:35 Hrs', '2026-01-25', '', '', ''],
-                ['Ana-Maria Mereuta Johnsen', '', '', '', '', '', 'GH456789', '', '', 'Norway', '', '', 'EK656', '07:35 Hrs', '2026-01-25', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['4- Flight Details  (Please Tick (√ ) required service below)', '', '', '', '', '', '5-  Preference (Please Tick (√ ) below)', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Arrival', '', '', 'Departure', '', '', 'Gluten Free', '', 'Lactose Free', '', '', 'Vegan', '', '', 'Nut Allergy', '', '', ''],
-                ['Airline:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Flight No.:', '', '', '', '', '', '6- Special Assistance (Please Tick (√ ) the required service)', '', '', '', '', '', '', '', '', '', ''],
-                ['Time:', '', '', '', '', '', 'Wheel Chair', '', '', 'Stretcher', '', '', '', 'Ambulance', '', '', '', ''],
-                ['Date:', '', '', '', '', '', '7- If any special name preferred for "Name Board" please write below in capital letters', '', '', '', '', '', '', '', '', '', ''],
-                ['Origin/Destination:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['I have read the terms and conditions for VILU Business Lounge (seaplane terminal)  service and agreed to abide by', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['8- Applicant Signatory:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Name', '', '', '', '', '', 'Designation', '', '', 'Date', '', '', 'Time', '', '', 'Stamp & Signature', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['9-  Authorized Signatory of MACL for VILU Business Lounge (seaplane terminal)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Name', '', '', '', '', '', 'Designation', '', '', 'Date', '', '', 'Time', '', '', 'Stamp & Signature', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Important Information:', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Reservation of VILU Business lounge (seaplane Terminal) for the following day shall be made, before 1900hrs of every day, and all late bookings must be notified  02 hours prior to the movement time.(Applications for early morning flights during non working hours will be counted from lounge opening time).VILU Business Lounge will be open from 0500am to 0900pm. For reservations the hotline is +(960)    and VILU Business lounge service application form" can be emailed to :   email:vilu.lounge@macl.aero', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                ['Telephone + (960) 7288007            Fax: + (960)  3331640               e-mail: vilu.lounge@macl.aero       website: www.macl.aero', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+            const templateData = [
+                ['Guest Name', 'Customer', 'Flight/Hotel', 'STA/ETA', 'Direction', 'Nationality', 'Reservation Date', 'FOC (Yes/No)'],
+                ['John Smith', 'Emirates', 'EK658', '14:30', 'Arrival', 'British', '2024-01-15', 'No'],
+                ['Maria Garcia', 'Qatar Airways', 'QR672', '18:45', 'Departure', 'Spanish', '2024-01-15', 'Yes'],
+                ['Chen Wei', 'Singapore Airlines', 'SQ432', '09:15', 'Transit', 'Chinese', '2024-01-16', 'No'],
+                ['Anna Schmidt', 'Lufthansa', 'LH754', '22:00', 'Local', 'German', '2024-01-16', 'No']
             ];
             
-            const ws = XLSX.utils.aoa_to_sheet(viluTemplate);
+            const ws = XLSX.utils.aoa_to_sheet(templateData);
             
-            const wscols = [];
-            for (let i = 0; i < 18; i++) {
-                wscols.push({ wch: 15 });
-            }
+            const wscols = [
+                { wch: 20 }, // Guest Name
+                { wch: 15 }, // Customer
+                { wch: 15 }, // Flight/Hotel
+                { wch: 10 }, // STA/ETA
+                { wch: 12 }, // Direction
+                { wch: 15 }, // Nationality
+                { wch: 15 }, // Reservation Date
+                { wch: 10 }  // FOC
+            ];
             ws['!cols'] = wscols;
             
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'VILU Template');
-            XLSX.writeFile(wb, 'VILU_Business_Lounge_Template.xlsx');
+            XLSX.utils.book_append_sheet(wb, ws, 'Template');
+            XLSX.writeFile(wb, 'Vilu_Lounge_Import_Template.xlsx');
             
-            alert('VILU Business Lounge template downloaded. Fill in rows 22-25 with guest information and set Contact Person in row 13.');
+            alert('Excel template downloaded. Please fill in the data following the format.');
         }
 
         async exportToExcel() {
@@ -4845,6 +5840,8 @@
             const toDateInput = document.getElementById('reportToDate');
             const flightSelect = document.getElementById('reportFlightFilter');
             const customerSelect = document.getElementById('reportCustomerFilter');
+            const focSelect = document.getElementById('reportFOCFilter');
+            const statusSelect = document.getElementById('reportStatusFilter');
             
             if (!fromDateInput || !toDateInput) return;
             
@@ -4852,6 +5849,8 @@
             const toDate = toDateInput.value;
             const flightFilter = flightSelect ? flightSelect.value : '';
             const customerFilter = customerSelect ? customerSelect.value : '';
+            const focFilter = focSelect ? focSelect.value : '';
+            const statusFilter = statusSelect ? statusSelect.value : '';
             
             if (fromDate && toDate && fromDate > toDate) {
                 alert('From date cannot be after To date');
@@ -4860,10 +5859,6 @@
             
             alert('Generating Excel file... Please wait.');
             
-            this.fetchDataForExport(fromDate, toDate, flightFilter, customerFilter);
-        }
-
-        async fetchDataForExport(fromDate, toDate, flightFilter, customerFilter) {
             try {
                 const snapshot = await this.db.collection('reservations').get();
                 const reservations = [];
@@ -4882,6 +5877,12 @@
                     
                     if (flightFilter && data.flightHotel !== flightFilter) return;
                     if (customerFilter && data.customer !== customerFilter) return;
+                    if (focFilter) {
+                        const isFOC = data.foc || false;
+                        if (focFilter === 'true' && !isFOC) return;
+                        if (focFilter === 'false' && isFOC) return;
+                    }
+                    if (statusFilter && data.status !== statusFilter) return;
                     
                     reservations.push(data);
                 });
@@ -4903,13 +5904,15 @@
                 'Customer': item.customer,
                 'Reservation Date': item.reservationDate,
                 'Flight/Hotel': item.flightHotel,
-                'STA': item.sta,
+                'STA/ETA': item.sta,
                 'Direction': item.direction,
                 'Guest Name': item.guestName,
                 'Nationality': item.nationality,
+                'FOC': item.foc ? 'Yes' : 'No',
                 'Status': item.status,
                 'Check-In Time': item.checkinTime || '',
                 'Check-Out Time': item.checkoutTime || '',
+                'No-Show Reason': item.noShowReason || '',
                 'Remarks': item.remarks || '',
                 'Created By': item.createdBy,
                 'Created At': new Date(item.createdAt).toLocaleString()
@@ -4930,6 +5933,5 @@
     // Initialize application
     const app = new ReservationSystem();
     </script>
-   
 </body>
 </html>
