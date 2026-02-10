@@ -4122,12 +4122,10 @@ async saveReopenReservation() {
                                     <th>Flight/Hotel</th>
                                     <th>STA/ETA</th>
                                     <th>Direction</th>
-                                    <th>Nationality</th>
-                                    <th>Reservation Date</th>
                                     <th>Check-In</th>
                                     <th>Check-Out</th>
-                                    <th>Status</th>
-                                    <th>FOC</th>
+                                    <th>Remarks</th>
+                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -4154,12 +4152,10 @@ async saveReopenReservation() {
                         <td>${res.flightHotel}</td>
                         <td>${res.sta}</td>
                         <td>${res.direction}</td>
-                        <td>${res.nationality}</td>
-                        <td>${res.reservationDate}</td>
                         <td>${res.checkinTime || '-'}</td>
                         <td>${res.checkoutTime || '-'}</td>
-                        <td>${statusBadge}</td>
-                        <td>${focBadge}</td>
+                        <td>${remarks}</td>
+                        
                     </tr>
                 `;
             });
