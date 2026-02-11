@@ -2890,7 +2890,1916 @@
             printWindow.focus();
         }
 
-         // Excel Upload Functions
+        // ... (keep all the HTML structure and existing code from above, then add these methods inside the ReservationSystem class)
+
+        // [CONTINUATION OF ReservationSystem CLASS - Add these methods after the existing ones]
+
+        // ============== CHECKOUT & RECHECK-IN METHODS ==============
+
+        async checkoutGuest(reservationId) {
+            if (!confirm('Are you sure you want to check out this guest?')) {
+                return;
+            }
+            
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5);
+            const checkoutTime = now.toLocaleTimeString('en-US', { 
+                hour12: true, 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            try {
+                await this.db.collection('reservations').doc(reservationId).update({
+                    status: 'checked-out',
+                    checkoutTime: checkoutTime,
+                    checkoutDateTime: now.toISOString(),
+                    checkoutBy: this.currentUser.username,
+                    checkoutDate: new Date().toISOString().split('T')[0],
+                    actualCheckoutTime: currentTime
+                });
+                
+                alert('Guest checked out successfully!');
+                
+                // Refresh all data
+                this.loadCheckoutData('checkedin');
+                this.loadOverviewData();
+                this.loadReportOptions();
+                
+            } catch (error) {
+                console.error('Error checking out guest:', error);
+                alert('Error checking out guest. Please try again.');
+            }
+        }
+
+        // ============== FLIGHT & CUSTOMER OPTIONS METHODS ==============
+
+        async loadFlightOptionsForCheckin() {
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                
+                const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+                const select = document.getElementById('checkinFlightFilter');
+                if (!select) return;
+                
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">All Flights/Hotels</option>';
+                flights.forEach(flight => {
+                    if (flight) {
+                        const option = document.createElement('option');
+                        option.value = flight;
+                        option.textContent = flight;
+                        select.appendChild(option);
+                    }
+                });
+                
+                if (flights.includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            } catch (error) {
+                console.error('Error loading flight options for check-in:', error);
+            }
+        }
+
+        async loadCustomerOptionsForCheckin() {
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                
+                const customers = [...new Set(snapshot.docs.map(doc => doc.data().customer))];
+                const select = document.getElementById('checkinCustomerFilter');
+                if (!select) return;
+                
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">All Customers</option>';
+                customers.forEach(customer => {
+                    if (customer) {
+                        const option = document.createElement('option');
+                        option.value = customer;
+                        option.textContent = customer;
+                        select.appendChild(option);
+                    }
+                });
+                
+                if (customers.includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            } catch (error) {
+                console.error('Error loading customer options for check-in:', error);
+            }
+        }
+
+        async loadFlightOptionsForCheckout() {
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                
+                const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+                const select = document.getElementById('checkoutFlightFilter');
+                if (!select) return;
+                
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">All Flights/Hotels</option>';
+                flights.forEach(flight => {
+                    if (flight) {
+                        const option = document.createElement('option');
+                        option.value = flight;
+                        option.textContent = flight;
+                        select.appendChild(option);
+                    }
+                });
+                
+                if (flights.includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            } catch (error) {
+                console.error('Error loading flight options for check-out:', error);
+            }
+        }
+
+        async loadCustomerOptionsForCheckout() {
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                
+                const customers = [...new Set(snapshot.docs.map(doc => doc.data().customer))];
+                const select = document.getElementById('checkoutCustomerFilter');
+                if (!select) return;
+                
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">All Customers</option>';
+                customers.forEach(customer => {
+                    if (customer) {
+                        const option = document.createElement('option');
+                        option.value = customer;
+                        option.textContent = customer;
+                        select.appendChild(option);
+                    }
+                });
+                
+                if (customers.includes(currentValue)) {
+                    select.value = currentValue;
+                }
+            } catch (error) {
+                console.error('Error loading customer options for check-out:', error);
+            }
+        }
+
+        // ============== AUTOCOMPLETE METHODS ==============
+
+        showCustomerDropdown() {
+            this.closeAllDropdowns();
+            const input = document.getElementById('customer');
+            if (!input) return;
+            
+            const container = input.parentElement;
+            const dropdown = document.createElement('div');
+            dropdown.className = 'autocomplete-dropdown';
+            
+            // Add "Add new" option
+            const addNewOption = document.createElement('div');
+            addNewOption.className = 'dropdown-item';
+            addNewOption.innerHTML = '<i class="fas fa-plus me-2"></i> Add new customer';
+            addNewOption.onclick = () => {
+                this.closeAllDropdowns();
+                input.focus();
+            };
+            dropdown.appendChild(addNewOption);
+            
+            // Add existing customers
+            Array.from(this.customers).sort().forEach(customer => {
+                const option = document.createElement('div');
+                option.className = 'dropdown-item';
+                option.textContent = customer;
+                option.onclick = () => {
+                    input.value = customer;
+                    this.closeAllDropdowns();
+                };
+                dropdown.appendChild(option);
+            });
+            
+            container.style.position = 'relative';
+            container.appendChild(dropdown);
+        }
+
+        showFlightDropdown() {
+            this.closeAllDropdowns();
+            const input = document.getElementById('flightHotel');
+            if (!input) return;
+            
+            const container = input.parentElement;
+            const dropdown = document.createElement('div');
+            dropdown.className = 'autocomplete-dropdown';
+            
+            // Add "Add new" option
+            const addNewOption = document.createElement('div');
+            addNewOption.className = 'dropdown-item';
+            addNewOption.innerHTML = '<i class="fas fa-plus me-2"></i> Add new flight/hotel';
+            addNewOption.onclick = () => {
+                this.closeAllDropdowns();
+                input.focus();
+            };
+            dropdown.appendChild(addNewOption);
+            
+            // Add existing flights/hotels
+            Array.from(this.flightHotels).sort().forEach(flightHotel => {
+                const option = document.createElement('div');
+                option.className = 'dropdown-item';
+                option.textContent = flightHotel;
+                option.onclick = () => {
+                    input.value = flightHotel;
+                    this.closeAllDropdowns();
+                };
+                dropdown.appendChild(option);
+            });
+            
+            container.style.position = 'relative';
+            container.appendChild(dropdown);
+        }
+
+        filterCustomerDropdown(searchTerm) {
+            // Implement filtering if needed
+        }
+
+        filterFlightDropdown(searchTerm) {
+            // Implement filtering if needed
+        }
+
+        closeAllDropdowns() {
+            document.querySelectorAll('.autocomplete-dropdown').forEach(dropdown => {
+                dropdown.remove();
+            });
+        }
+
+        // ============== RESERVATION METHODS ==============
+
+        async saveReservation(e) {
+            e.preventDefault();
+            
+            const customer = document.getElementById('customer').value;
+            const flightHotel = document.getElementById('flightHotel').value;
+            const reservationDate = document.getElementById('reservationDate').value;
+            const focPassenger = document.getElementById('focPassenger').checked;
+            
+            const reservation = {
+                customer: customer,
+                date: reservationDate,
+                flightHotel: flightHotel,
+                sta: document.getElementById('sta').value,
+                direction: document.getElementById('direction').value,
+                guestName: document.getElementById('guestName').value,
+                nationality: document.getElementById('nationality').value,
+                remarks: document.getElementById('remarks').value,
+                foc: focPassenger,
+                status: 'reserved',
+                createdAt: new Date().toISOString(),
+                createdBy: this.currentUser.username,
+                checkinDate: null,
+                checkoutDate: null,
+                reservationDate: reservationDate,
+                actualCheckinTime: null,
+                checkinRemarks: null,
+                noShowReason: null,
+                recheckCount: 0,
+                isRechecked: false
+            };
+            
+            try {
+                const docRef = await this.db.collection('reservations').add(reservation);
+                
+                // Add to autocomplete sets
+                if (customer) this.customers.add(customer);
+                if (flightHotel) this.flightHotels.add(flightHotel);
+                
+                alert('Reservation saved successfully!');
+                
+                document.getElementById('reservationForm').reset();
+                document.getElementById('reservationDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('focPassenger').checked = false;
+                
+                // Refresh all data
+                this.loadCheckinData();
+                this.loadCheckoutData('checkedin');
+                this.loadFlightOptionsForCheckin();
+                this.loadFlightOptionsForCheckout();
+                this.loadCustomerOptionsForCheckin();
+                this.loadCustomerOptionsForCheckout();
+                this.loadReportOptions();
+                this.loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error saving reservation:', error);
+                alert('Error saving reservation. Please try again.');
+            }
+        }
+
+        // ============== EDIT RESERVATION METHODS ==============
+
+        async openEditModal(reservationId) {
+            try {
+                const doc = await this.db.collection('reservations').doc(reservationId).get();
+                if (!doc.exists) {
+                    alert('Reservation not found!');
+                    return;
+                }
+                
+                const reservation = doc.data();
+                
+                // Populate form
+                document.getElementById('editReservationId').value = reservationId;
+                document.getElementById('editCustomer').value = reservation.customer || '';
+                document.getElementById('editReservationDate').value = reservation.reservationDate || '';
+                document.getElementById('editFlightHotel').value = reservation.flightHotel || '';
+                document.getElementById('editSta').value = reservation.sta || '';
+                document.getElementById('editDirection').value = reservation.direction || 'Arrival';
+                document.getElementById('editGuestName').value = reservation.guestName || '';
+                document.getElementById('editNationality').value = reservation.nationality || '';
+                document.getElementById('editFOCPassenger').checked = reservation.foc || false;
+                document.getElementById('editStatus').value = reservation.status || 'reserved';
+                document.getElementById('editRemarks').value = reservation.remarks || '';
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('editReservationModal'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error loading reservation for edit:', error);
+                alert('Error loading reservation details.');
+            }
+        }
+
+        async updateReservation() {
+            const reservationId = document.getElementById('editReservationId').value;
+            
+            const updatedData = {
+                customer: document.getElementById('editCustomer').value,
+                reservationDate: document.getElementById('editReservationDate').value,
+                flightHotel: document.getElementById('editFlightHotel').value,
+                sta: document.getElementById('editSta').value,
+                direction: document.getElementById('editDirection').value,
+                guestName: document.getElementById('editGuestName').value,
+                nationality: document.getElementById('editNationality').value,
+                foc: document.getElementById('editFOCPassenger').checked,
+                status: document.getElementById('editStatus').value,
+                remarks: document.getElementById('editRemarks').value,
+                updatedAt: new Date().toISOString(),
+                updatedBy: this.currentUser.username
+            };
+            
+            try {
+                await this.db.collection('reservations').doc(reservationId).update(updatedData);
+                
+                // Add to autocomplete sets
+                if (updatedData.customer) this.customers.add(updatedData.customer);
+                if (updatedData.flightHotel) this.flightHotels.add(updatedData.flightHotel);
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editReservationModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                alert('Reservation updated successfully!');
+                
+                // Refresh all data
+                this.loadCheckinData();
+                this.loadCheckoutData('checkedin');
+                this.loadFlightOptionsForCheckin();
+                this.loadFlightOptionsForCheckout();
+                this.loadCustomerOptionsForCheckin();
+                this.loadCustomerOptionsForCheckout();
+                this.loadReportOptions();
+                this.loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error updating reservation:', error);
+                alert('Error updating reservation. Please try again.');
+            }
+        }
+
+        // ============== QUICK CHECK-IN METHODS ==============
+
+        async openQuickCheckinModal(reservationId) {
+            try {
+                const doc = await this.db.collection('reservations').doc(reservationId).get();
+                if (!doc.exists) {
+                    alert('Reservation not found!');
+                    return;
+                }
+                
+                const reservation = doc.data();
+                
+                // Populate form
+                document.getElementById('quickCheckinReservationId').value = reservationId;
+                document.getElementById('quickCheckinGuestName').value = reservation.guestName || '';
+                document.getElementById('quickCheckinCustomer').value = reservation.customer || '';
+                document.getElementById('quickCheckinFlightHotel').value = reservation.flightHotel || '';
+                document.getElementById('quickCheckinSta').value = reservation.sta || '';
+                document.getElementById('quickCheckinDirection').value = reservation.direction || '';
+                document.getElementById('quickCheckinFOC').checked = reservation.foc || false;
+                
+                // Set current time as default for actual check-in time
+                const now = new Date();
+                const currentTime = now.toTimeString().slice(0, 5);
+                document.getElementById('quickCheckinActualTime').value = currentTime;
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('quickCheckinModal'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error loading reservation for quick check-in:', error);
+                alert('Error loading reservation details.');
+            }
+        }
+
+        async saveQuickCheckin() {
+            const reservationId = document.getElementById('quickCheckinReservationId').value;
+            const actualTime = document.getElementById('quickCheckinActualTime').value;
+            const sta = document.getElementById('quickCheckinSta').value;
+            const remarks = document.getElementById('quickCheckinRemarks').value;
+            const foc = document.getElementById('quickCheckinFOC').checked;
+            
+            if (!actualTime) {
+                alert('Please enter actual check-in time.');
+                return;
+            }
+            
+            const now = new Date();
+            const checkinTime = now.toLocaleTimeString('en-US', { 
+                hour12: true, 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            try {
+                await this.db.collection('reservations').doc(reservationId).update({
+                    status: 'checked-in',
+                    sta: sta,
+                    foc: foc,
+                    actualCheckinTime: actualTime,
+                    checkinTime: checkinTime,
+                    checkinDateTime: now.toISOString(),
+                    checkinBy: this.currentUser.username,
+                    checkinDate: new Date().toISOString().split('T')[0],
+                    checkinRemarks: remarks || null
+                });
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('quickCheckinModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                alert('Guest checked in successfully!');
+                
+                // Refresh all data
+                this.loadCheckinData();
+                this.loadCheckoutData('checkedin');
+                this.loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error checking in guest:', error);
+                alert('Error checking in guest. Please try again.');
+            }
+        }
+
+        // ============== BULK CHECK-IN METHODS ==============
+
+        toggleCheckinSelection(reservationId) {
+            if (this.selectedCheckinReservations.has(reservationId)) {
+                this.selectedCheckinReservations.delete(reservationId);
+            } else {
+                this.selectedCheckinReservations.add(reservationId);
+            }
+            
+            this.updateCheckinSelectionUI();
+        }
+
+        toggleAllCheckinSelection() {
+            const selectAll = document.getElementById('checkinSelectAll');
+            const checkboxes = document.querySelectorAll('#checkinTable input[type="checkbox"]:not(#checkinSelectAll)');
+            
+            if (selectAll.checked) {
+                checkboxes.forEach(checkbox => {
+                    const reservationId = checkbox.value;
+                    this.selectedCheckinReservations.add(reservationId);
+                    checkbox.checked = true;
+                });
+            } else {
+                this.selectedCheckinReservations.clear();
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            }
+            
+            this.updateCheckinSelectionUI();
+        }
+
+        updateCheckinSelectionUI() {
+            const toolbar = document.getElementById('checkinBulkToolbar');
+            const countElement = document.getElementById('checkinSelectedCount');
+            const selectAllCheckbox = document.getElementById('checkinSelectAll');
+            
+            if (countElement) {
+                countElement.textContent = this.selectedCheckinReservations.size;
+            }
+            
+            if (toolbar) {
+                if (this.selectedCheckinReservations.size > 0) {
+                    toolbar.style.display = 'block';
+                } else {
+                    toolbar.style.display = 'none';
+                }
+            }
+            
+            // Update select all checkbox state
+            if (selectAllCheckbox) {
+                const checkboxes = document.querySelectorAll('#checkinTable input[type="checkbox"]:not(#checkinSelectAll)');
+                const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = !allChecked && this.selectedCheckinReservations.size > 0;
+            }
+        }
+
+        clearCheckinSelection() {
+            this.selectedCheckinReservations.clear();
+            const checkboxes = document.querySelectorAll('#checkinTable input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            this.updateCheckinSelectionUI();
+        }
+
+        async bulkCheckIn() {
+            if (this.selectedCheckinReservations.size === 0) {
+                alert('Please select guests to check in.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to check in ${this.selectedCheckinReservations.size} guests?`)) {
+                return;
+            }
+            
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5);
+            const checkinTime = now.toLocaleTimeString('en-US', { 
+                hour12: true, 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const reservationId of this.selectedCheckinReservations) {
+                try {
+                    await this.db.collection('reservations').doc(reservationId).update({
+                        status: 'checked-in',
+                        actualCheckinTime: currentTime,
+                        checkinTime: checkinTime,
+                        checkinDateTime: now.toISOString(),
+                        checkinBy: this.currentUser.username,
+                        checkinDate: new Date().toISOString().split('T')[0]
+                    });
+                    successCount++;
+                } catch (error) {
+                    console.error(`Error checking in reservation ${reservationId}:`, error);
+                    errorCount++;
+                }
+            }
+            
+            alert(`Bulk check-in completed:\nSuccess: ${successCount}\nFailed: ${errorCount}`);
+            
+            // Clear selection and refresh data
+            this.clearCheckinSelection();
+            this.loadCheckinData();
+            this.loadCheckoutData('checkedin');
+            this.loadOverviewData();
+        }
+
+        async bulkMarkNoShow() {
+            if (this.selectedCheckinReservations.size === 0) {
+                alert('Please select guests to mark as no-show.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to mark ${this.selectedCheckinReservations.size} guests as no-show?`)) {
+                return;
+            }
+            
+            const reason = prompt('Please enter reason for no-show (optional):', 'Guest did not arrive');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const reservationId of this.selectedCheckinReservations) {
+                try {
+                    await this.db.collection('reservations').doc(reservationId).update({
+                        status: 'no-show',
+                        noShowReason: reason || 'Guest did not arrive',
+                        noShowMarkedAt: new Date().toISOString(),
+                        noShowMarkedBy: this.currentUser.username
+                    });
+                    successCount++;
+                } catch (error) {
+                    console.error(`Error marking reservation ${reservationId} as no-show:`, error);
+                    errorCount++;
+                }
+            }
+            
+            alert(`Bulk no-show marking completed:\nSuccess: ${successCount}\nFailed: ${errorCount}`);
+            
+            // Clear selection and refresh data
+            this.clearCheckinSelection();
+            this.loadCheckinData();
+            this.loadOverviewData();
+        }
+
+        // ============== BULK CHECK-OUT METHODS ==============
+
+        toggleCheckoutSelection(reservationId) {
+            if (this.selectedCheckoutReservations.has(reservationId)) {
+                this.selectedCheckoutReservations.delete(reservationId);
+            } else {
+                this.selectedCheckoutReservations.add(reservationId);
+            }
+            
+            this.updateCheckoutSelectionUI();
+        }
+
+        toggleAllCheckoutSelection() {
+            const selectAll = document.getElementById('checkoutSelectAll');
+            const checkboxes = document.querySelectorAll('#checkoutTable input[type="checkbox"]:not(#checkoutSelectAll)');
+            
+            if (selectAll.checked) {
+                checkboxes.forEach(checkbox => {
+                    const reservationId = checkbox.value;
+                    this.selectedCheckoutReservations.add(reservationId);
+                    checkbox.checked = true;
+                });
+            } else {
+                this.selectedCheckoutReservations.clear();
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+            }
+            
+            this.updateCheckoutSelectionUI();
+        }
+
+        updateCheckoutSelectionUI() {
+            const toolbar = document.getElementById('checkoutBulkToolbar');
+            const countElement = document.getElementById('checkoutSelectedCount');
+            const selectAllCheckbox = document.getElementById('checkoutSelectAll');
+            
+            if (countElement) {
+                countElement.textContent = this.selectedCheckoutReservations.size;
+            }
+            
+            if (toolbar) {
+                if (this.selectedCheckoutReservations.size > 0) {
+                    toolbar.style.display = 'block';
+                } else {
+                    toolbar.style.display = 'none';
+                }
+            }
+            
+            // Update select all checkbox state
+            if (selectAllCheckbox) {
+                const checkboxes = document.querySelectorAll('#checkoutTable input[type="checkbox"]:not(#checkoutSelectAll)');
+                const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = !allChecked && this.selectedCheckoutReservations.size > 0;
+            }
+        }
+
+        clearCheckoutSelection() {
+            this.selectedCheckoutReservations.clear();
+            const checkboxes = document.querySelectorAll('#checkoutTable input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            this.updateCheckoutSelectionUI();
+        }
+
+        async bulkCheckOut() {
+            if (this.selectedCheckoutReservations.size === 0) {
+                alert('Please select guests to check out.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to check out ${this.selectedCheckoutReservations.size} guests?`)) {
+                return;
+            }
+            
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5);
+            const checkoutTime = now.toLocaleTimeString('en-US', { 
+                hour12: true, 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const reservationId of this.selectedCheckoutReservations) {
+                try {
+                    await this.db.collection('reservations').doc(reservationId).update({
+                        status: 'checked-out',
+                        checkoutTime: checkoutTime,
+                        checkoutDateTime: now.toISOString(),
+                        checkoutBy: this.currentUser.username,
+                        checkoutDate: new Date().toISOString().split('T')[0],
+                        actualCheckoutTime: currentTime
+                    });
+                    successCount++;
+                } catch (error) {
+                    console.error(`Error checking out reservation ${reservationId}:`, error);
+                    errorCount++;
+                }
+            }
+            
+            alert(`Bulk check-out completed:\nSuccess: ${successCount}\nFailed: ${errorCount}`);
+            
+            // Clear selection and refresh data
+            this.clearCheckoutSelection();
+            this.loadCheckoutData('checkedin');
+            this.loadOverviewData();
+        }
+
+        // ============== CHECK-IN DATA LOADING ==============
+
+        async loadCheckinData() {
+            const dateInput = document.getElementById('checkinDateFilter');
+            const flightSelect = document.getElementById('checkinFlightFilter');
+            const customerSelect = document.getElementById('checkinCustomerFilter');
+            const focSelect = document.getElementById('checkinFOCFilter');
+            const tableBody = document.getElementById('checkinTable');
+            
+            if (!tableBody) return;
+            
+            const date = dateInput ? dateInput.value : '';
+            const flightFilter = flightSelect ? flightSelect.value : '';
+            const customerFilter = customerSelect ? customerSelect.value : '';
+            const focFilter = focSelect ? focSelect.value : '';
+            
+            try {
+                let query = this.db.collection('reservations');
+                
+                // Apply filters - now include 'no-show' status
+                if (date) {
+                    query = query.where('reservationDate', '==', date);
+                }
+                
+                const snapshot = await query.get();
+                tableBody.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">
+                                No reservations found
+                            </td>
+                        </tr>
+                    `;
+                    this.updateCheckinSelectionUI();
+                    return;
+                }
+                
+                let hasData = false;
+                const now = new Date();
+                const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // Apply additional filters
+                    if (flightFilter && data.flightHotel !== flightFilter) return;
+                    if (customerFilter && data.customer !== customerFilter) return;
+                    if (focFilter) {
+                        const isFOC = data.foc || false;
+                        if (focFilter === 'true' && !isFOC) return;
+                        if (focFilter === 'false' && isFOC) return;
+                    }
+                    
+                    // Show reserved and no-show guests
+                    if (data.status !== 'reserved' && data.status !== 'no-show') return;
+                    
+                    hasData = true;
+                    
+                    // Check if this should be marked as pending no-show (only for reserved status)
+                    let isPendingNoShow = false;
+                    let rowClass = '';
+                    let statusDisplay = '';
+                    
+                    if (data.status === 'no-show') {
+                        // Actual no-show
+                        rowClass = 'noshow-row';
+                        statusDisplay = '<span class="status-badge status-noshow">No-Show</span>';
+                    } else if (data.status === 'reserved') {
+                        // Check if pending no-show
+                        isPendingNoShow = this.isNoShow(data.sta, currentTime);
+                        rowClass = isPendingNoShow ? 'noshow-row' : '';
+                        statusDisplay = isPendingNoShow ? 
+                            '<span class="status-badge status-pending-noshow">No-Show (Pending)</span>' : 
+                            '<span class="status-badge status-reserved">Reserved</span>';
+                    }
+                    
+                    const focBadge = data.foc ? '<span class="foc-badge">FOC</span>' : '';
+                    
+                    const isSelected = this.selectedCheckinReservations.has(doc.id);
+                    
+                    // Different actions based on status
+                    let actionButtons = '';
+                    
+                    if (data.status === 'no-show') {
+                        // For no-show guests, show reopen options
+                        actionButtons = `
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-primary" onclick="app.openReopenModal('${doc.id}')">
+                                    <i class="fas fa-undo me-1"></i> Reopen
+                                </button>
+                                <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        // For reserved guests (including pending no-shows)
+                        actionButtons = `
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-success" onclick="app.openQuickCheckinModal('${doc.id}')">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                </button>
+                                <button class="btn btn-sm btn-info" onclick="app.openEditModal('${doc.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                ${isPendingNoShow ? `
+                                <button class="btn btn-sm btn-danger" onclick="app.markNoShow('${doc.id}')">
+                                    <i class="fas fa-user-times"></i>
+                                </button>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+                    
+                    const row = `
+                        <tr class="${rowClass}">
+                            <td>
+                                <input type="checkbox" class="bulk-checkbox" value="${doc.id}" 
+                                       ${isSelected ? 'checked' : ''}
+                                       onchange="app.toggleCheckinSelection('${doc.id}')">
+                            </td>
+                            <td>${data.guestName}</td>
+                            <td>${data.customer}</td>
+                            <td>${data.flightHotel}</td>
+                            <td>${data.sta}</td>
+                            <td>${data.direction}</td>
+                            <td>${focBadge}</td>
+                            <td>${statusDisplay}</td>
+                            <td>
+                                ${actionButtons}
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+                
+                if (!hasData) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">
+                                No guests match the selected filters
+                            </td>
+                        </tr>
+                    `;
+                }
+                
+                this.updateCheckinSelectionUI();
+            } catch (error) {
+                console.error('Error loading check-in data:', error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-danger">
+                            Error loading data. Please try again.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        isNoShow(staTime, currentTime) {
+            if (!staTime) return false;
+            
+            const staDate = new Date();
+            const [staHours, staMinutes] = staTime.split(':').map(Number);
+            staDate.setHours(staHours, staMinutes, 0, 0);
+            
+            const currentDate = new Date();
+            const [currentHours, currentMinutes] = currentTime.split(':').map(Number);
+            currentDate.setHours(currentHours, currentMinutes, 0, 0);
+            
+            // Consider as no-show if current time is 30 minutes past STA
+            staDate.setMinutes(staDate.getMinutes() + 30);
+            
+            return currentDate > staDate;
+        }
+
+        async autoMarkNoShows() {
+            if (!confirm('Automatically mark all reserved guests with passed STA/ETA as no-show?')) {
+                return;
+            }
+            
+            const now = new Date();
+            const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            const today = now.toISOString().split('T')[0];
+            
+            try {
+                const snapshot = await this.db.collection('reservations')
+                    .where('reservationDate', '==', today)
+                    .where('status', '==', 'reserved')
+                    .get();
+                
+                let markedCount = 0;
+                let errorCount = 0;
+                
+                const batch = this.db.batch();
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    if (this.isNoShow(data.sta, currentTime)) {
+                        batch.update(doc.ref, {
+                            status: 'no-show',
+                            noShowReason: 'Auto-marked: STA/ETA passed',
+                            noShowMarkedAt: new Date().toISOString(),
+                            noShowMarkedBy: this.currentUser.username
+                        });
+                        markedCount++;
+                    }
+                });
+                
+                if (markedCount > 0) {
+                    await batch.commit();
+                }
+                
+                alert(`Auto-mark no-shows completed:\nMarked: ${markedCount}\nErrors: ${errorCount}`);
+                
+                // Refresh data
+                this.loadCheckinData();
+                this.loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error auto-marking no-shows:', error);
+                alert('Error auto-marking no-shows. Please try again.');
+            }
+        }
+
+        async markNoShow(reservationId) {
+            const reason = prompt('Please enter reason for no-show (optional):', 'Guest did not arrive');
+            
+            if (reason === null) return; // User cancelled
+            
+            try {
+                await this.db.collection('reservations').doc(reservationId).update({
+                    status: 'no-show',
+                    noShowReason: reason || 'Guest did not arrive',
+                    noShowMarkedAt: new Date().toISOString(),
+                    noShowMarkedBy: this.currentUser.username
+                });
+                
+                alert('Guest marked as no-show successfully!');
+                
+                // Refresh data
+                this.loadCheckinData();
+                this.loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error marking guest as no-show:', error);
+                alert('Error marking guest as no-show. Please try again.');
+            }
+        }
+
+        // ============== REOPEN METHODS ==============
+
+        async openReopenModal(reservationId) {
+            try {
+                const doc = await this.db.collection('reservations').doc(reservationId).get();
+                if (!doc.exists) {
+                    alert('Reservation not found!');
+                    return;
+                }
+                
+                const reservation = doc.data();
+                
+                // Populate the reopen modal
+                document.getElementById('reopenReservationId').value = reservationId;
+                document.getElementById('reopenGuestName').value = reservation.guestName || '';
+                document.getElementById('reopenCustomer').value = reservation.customer || '';
+                document.getElementById('reopenFlightHotel').value = reservation.flightHotel || '';
+                
+                // Set current time as default for new STA
+                const now = new Date();
+                const currentTime = now.toTimeString().slice(0, 5);
+                document.getElementById('reopenNewSta').value = currentTime;
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('reopenModal'));
+                modal.show();
+                
+            } catch (error) {
+                console.error('Error loading reservation for reopen:', error);
+                alert('Error loading reservation details.');
+            }
+        }
+
+        async saveReopenReservation() {
+            const reservationId = document.getElementById('reopenReservationId').value;
+            const newStatus = document.getElementById('reopenStatus').value;
+            const newSta = document.getElementById('reopenNewSta').value;
+            const remarks = document.getElementById('reopenRemarks').value;
+            
+            if (!newSta) {
+                alert('Please enter new STA/ETA time.');
+                return;
+            }
+            
+            try {
+                const updateData = {
+                    status: newStatus,
+                    sta: newSta,
+                    noShowReason: null,
+                    noShowMarkedAt: null,
+                    noShowMarkedBy: null,
+                    updatedAt: new Date().toISOString(),
+                    updatedBy: this.currentUser.username
+                };
+                
+                if (remarks) {
+                    updateData.reopenRemarks = remarks;
+                    updateData.remarks = await this.appendRemarks(reservationId, `REOPENED: ${remarks}`);
+                }
+                
+                if (newStatus === 'checked-in') {
+                    const now = new Date();
+                    const currentTime = now.toTimeString().slice(0, 5);
+                    const checkinTime = now.toLocaleTimeString('en-US', { 
+                        hour12: true, 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                    
+                    updateData.actualCheckinTime = currentTime;
+                    updateData.checkinTime = checkinTime;
+                    updateData.checkinDateTime = now.toISOString();
+                    updateData.checkinBy = this.currentUser.username;
+                    updateData.checkinDate = new Date().toISOString().split('T')[0];
+                }
+                
+                await this.db.collection('reservations').doc(reservationId).update(updateData);
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('reopenModal'));
+                if (modal) {
+                    modal.hide();
+                }
+                
+                alert('Reservation reopened successfully!');
+                
+                // Refresh all data
+                this.loadCheckinData();
+                this.loadCheckoutData('checkedin');
+                this.loadOverviewData();
+                
+            } catch (error) {
+                console.error('Error reopening reservation:', error);
+                alert('Error reopening reservation. Please try again.');
+            }
+        }
+
+        // ============== REPORT OPTIONS ==============
+
+        async loadReportOptions() {
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                
+                const flights = [...new Set(snapshot.docs.map(doc => doc.data().flightHotel))];
+                const customers = [...new Set(snapshot.docs.map(doc => doc.data().customer))];
+                
+                // Flight filter for reports
+                const flightSelect = document.getElementById('reportFlightFilter');
+                if (flightSelect) {
+                    const currentValue = flightSelect.value;
+                    flightSelect.innerHTML = '<option value="">All Flights/Hotels</option>';
+                    flights.forEach(flight => {
+                        if (flight) {
+                            const option = document.createElement('option');
+                            option.value = flight;
+                            option.textContent = flight;
+                            flightSelect.appendChild(option);
+                        }
+                    });
+                    if (flights.includes(currentValue)) {
+                        flightSelect.value = currentValue;
+                    }
+                }
+                
+                // Customer filter for reports
+                const customerSelect = document.getElementById('reportCustomerFilter');
+                if (customerSelect) {
+                    const currentValue = customerSelect.value;
+                    customerSelect.innerHTML = '<option value="">All Customers</option>';
+                    customers.forEach(customer => {
+                        if (customer) {
+                            const option = document.createElement('option');
+                            option.value = customer;
+                            option.textContent = customer;
+                            customerSelect.appendChild(option);
+                        }
+                    });
+                    if (customers.includes(currentValue)) {
+                        customerSelect.value = currentValue;
+                    }
+                }
+                
+                // Overview customer filter
+                const overviewCustomerSelect = document.getElementById('overviewCustomerFilter');
+                if (overviewCustomerSelect) {
+                    const currentValue = overviewCustomerSelect.value;
+                    overviewCustomerSelect.innerHTML = '<option value="">All Customers</option>';
+                    customers.forEach(customer => {
+                        if (customer) {
+                            const option = document.createElement('option');
+                            option.value = customer;
+                            option.textContent = customer;
+                            overviewCustomerSelect.appendChild(option);
+                        }
+                    });
+                    if (customers.includes(currentValue)) {
+                        overviewCustomerSelect.value = currentValue;
+                    }
+                }
+                
+                // Check-in flight filter
+                const checkinFlightSelect = document.getElementById('checkinFlightFilter');
+                if (checkinFlightSelect) {
+                    const currentValue = checkinFlightSelect.value;
+                    checkinFlightSelect.innerHTML = '<option value="">All Flights/Hotels</option>';
+                    flights.forEach(flight => {
+                        if (flight) {
+                            const option = document.createElement('option');
+                            option.value = flight;
+                            option.textContent = flight;
+                            checkinFlightSelect.appendChild(option);
+                        }
+                    });
+                    if (flights.includes(currentValue)) {
+                        checkinFlightSelect.value = currentValue;
+                    }
+                }
+                
+                // Check-in customer filter
+                const checkinCustomerSelect = document.getElementById('checkinCustomerFilter');
+                if (checkinCustomerSelect) {
+                    const currentValue = checkinCustomerSelect.value;
+                    checkinCustomerSelect.innerHTML = '<option value="">All Customers</option>';
+                    customers.forEach(customer => {
+                        if (customer) {
+                            const option = document.createElement('option');
+                            option.value = customer;
+                            option.textContent = customer;
+                            checkinCustomerSelect.appendChild(option);
+                        }
+                    });
+                    if (customers.includes(currentValue)) {
+                        checkinCustomerSelect.value = currentValue;
+                    }
+                }
+                
+                // Check-out flight filter
+                const checkoutFlightSelect = document.getElementById('checkoutFlightFilter');
+                if (checkoutFlightSelect) {
+                    const currentValue = checkoutFlightSelect.value;
+                    checkoutFlightSelect.innerHTML = '<option value="">All Flights/Hotels</option>';
+                    flights.forEach(flight => {
+                        if (flight) {
+                            const option = document.createElement('option');
+                            option.value = flight;
+                            option.textContent = flight;
+                            checkoutFlightSelect.appendChild(option);
+                        }
+                    });
+                    if (flights.includes(currentValue)) {
+                        checkoutFlightSelect.value = currentValue;
+                    }
+                }
+                
+                // Check-out customer filter
+                const checkoutCustomerSelect = document.getElementById('checkoutCustomerFilter');
+                if (checkoutCustomerSelect) {
+                    const currentValue = checkoutCustomerSelect.value;
+                    checkoutCustomerSelect.innerHTML = '<option value="">All Customers</option>';
+                    customers.forEach(customer => {
+                        if (customer) {
+                            const option = document.createElement('option');
+                            option.value = customer;
+                            option.textContent = customer;
+                            checkoutCustomerSelect.appendChild(option);
+                        }
+                    });
+                    if (customers.includes(currentValue)) {
+                        checkoutCustomerSelect.value = currentValue;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading report options:', error);
+            }
+        }
+
+        // ============== OVERVIEW METHODS ==============
+
+        async loadOverviewData() {
+            const startDateInput = document.getElementById('overviewStartDate');
+            const endDateInput = document.getElementById('overviewEndDate');
+            const customerSelect = document.getElementById('overviewCustomerFilter');
+            
+            const startDate = startDateInput ? startDateInput.value : '';
+            const endDate = endDateInput ? endDateInput.value : '';
+            const customerFilter = customerSelect ? customerSelect.value : '';
+            
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                
+                let totalGuests = 0;
+                let checkIns = 0;
+                let checkOuts = 0;
+                let noShows = 0;
+                let activeNow = 0;
+                let focCount = 0;
+                let recheckedCount = 0;
+                
+                const today = new Date().toISOString().split('T')[0];
+                let todayReservations = 0;
+                let todayCheckIns = 0;
+                let todayCheckOuts = 0;
+                let todayActive = 0;
+                let todayFOC = 0;
+                let todayNoShows = 0;
+                let todayRechecked = 0;
+                
+                const customerData = {};
+                const flightData = {};
+                const recentActivities = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    
+                    // Apply date filter
+                    if (startDate && endDate) {
+                        const checkDate = data.reservationDate || data.checkinDate;
+                        if (!checkDate) return;
+                        
+                        if (checkDate < startDate || checkDate > endDate) {
+                            return;
+                        }
+                    }
+                    
+                    // Apply customer filter
+                    if (customerFilter && data.customer !== customerFilter) return;
+                    
+                    totalGuests++;
+                    
+                    // Count check-ins and check-outs
+                    if (data.status === 'checked-in') {
+                        checkIns++;
+                        activeNow++;
+                    } else if (data.status === 'checked-out') {
+                        checkOuts++;
+                    } else if (data.status === 'no-show') {
+                        noShows++;
+                    }
+                    
+                    // Count FOC
+                    if (data.foc) {
+                        focCount++;
+                    }
+                    
+                    // Count rechecked
+                    if (data.isRechecked) {
+                        recheckedCount++;
+                    }
+                    
+                    // Today's statistics
+                    const reservationDate = data.reservationDate;
+                    if (reservationDate === today) {
+                        todayReservations++;
+                    }
+                    
+                    const checkinDate = data.checkinDate;
+                    if (checkinDate === today) {
+                        todayCheckIns++;
+                    }
+                    
+                    const checkoutDate = data.checkoutDate;
+                    if (checkoutDate === today) {
+                        todayCheckOuts++;
+                    }
+                    
+                    if (data.status === 'checked-in' && checkinDate === today) {
+                        todayActive++;
+                    }
+                    
+                    if (data.foc && reservationDate === today) {
+                        todayFOC++;
+                    }
+                    
+                    if (data.status === 'no-show' && reservationDate === today) {
+                        todayNoShows++;
+                    }
+                    
+                    if (data.isRechecked && data.recheckedAt) {
+                        const recheckedDate = data.recheckedAt.split('T')[0];
+                        if (recheckedDate === today) {
+                            todayRechecked++;
+                        }
+                    }
+                    
+                    // Customer breakdown
+                    if (data.customer) {
+                        if (!customerData[data.customer]) {
+                            customerData[data.customer] = { total: 0, checkedIn: 0, noShow: 0, foc: 0, rechecked: 0 };
+                        }
+                        customerData[data.customer].total++;
+                        if (data.status === 'checked-in') customerData[data.customer].checkedIn++;
+                        if (data.status === 'no-show') customerData[data.customer].noShow++;
+                        if (data.foc) customerData[data.customer].foc++;
+                        if (data.isRechecked) customerData[data.customer].rechecked++;
+                    }
+                    
+                    // Flight breakdown
+                    if (data.flightHotel) {
+                        if (!flightData[data.flightHotel]) {
+                            flightData[data.flightHotel] = { total: 0, checkedIn: 0, noShow: 0, foc: 0, rechecked: 0 };
+                        }
+                        flightData[data.flightHotel].total++;
+                        if (data.status === 'checked-in') flightData[data.flightHotel].checkedIn++;
+                        if (data.status === 'no-show') flightData[data.flightHotel].noShow++;
+                        if (data.foc) flightData[data.flightHotel].foc++;
+                        if (data.isRechecked) flightData[data.flightHotel].rechecked++;
+                    }
+                    
+                    // Recent activities (last 10)
+                    let activity = '';
+                    let activityTime = '';
+                    
+                    if (data.recheckedAt) {
+                        activity = 'Rechecked-In';
+                        activityTime = data.recheckedAt;
+                    } else if (data.checkoutDateTime) {
+                        activity = 'Checked Out';
+                        activityTime = data.checkoutDateTime;
+                    } else if (data.checkinDateTime) {
+                        activity = 'Checked In';
+                        activityTime = data.checkinDateTime;
+                    } else if (data.noShowMarkedAt) {
+                        activity = 'Marked No-Show';
+                        activityTime = data.noShowMarkedAt;
+                    } else if (data.createdAt) {
+                        activity = 'Reserved';
+                        activityTime = data.createdAt;
+                    }
+                    
+                    if (activity && activityTime) {
+                        recentActivities.push({
+                            time: new Date(activityTime),
+                            guest: data.guestName,
+                            customer: data.customer,
+                            flight: data.flightHotel,
+                            activity: activity,
+                            status: data.status,
+                            foc: data.foc || false,
+                            rechecked: data.isRechecked || false
+                        });
+                    }
+                });
+                
+                // Update overview statistics
+                document.getElementById('overviewTotalGuests').textContent = totalGuests;
+                document.getElementById('overviewCheckIns').textContent = checkIns;
+                document.getElementById('overviewCheckOuts').textContent = checkOuts;
+                document.getElementById('overviewNoShows').textContent = noShows;
+                
+                // Update today's statistics
+                document.getElementById('todayReservations').textContent = todayReservations;
+                document.getElementById('todayCheckIns').textContent = todayCheckIns;
+                document.getElementById('todayCheckOuts').textContent = todayCheckOuts;
+                document.getElementById('todayActive').textContent = todayActive;
+                document.getElementById('todayFOC').textContent = todayFOC;
+                document.getElementById('todayNoShows').textContent = todayNoShows;
+                
+                // Create charts
+                this.createCustomerBreakdownChart(customerData);
+                this.createFlightBreakdownChart(flightData);
+                
+                // Display recent activities
+                this.displayRecentActivities(recentActivities);
+                
+            } catch (error) {
+                console.error('Error loading overview data:', error);
+            }
+        }
+
+        createCustomerBreakdownChart(customerData) {
+            const ctx = document.getElementById('customerBreakdownChart');
+            if (!ctx) return;
+            
+            // Clear previous chart if exists
+            if (this.customerChart) {
+                this.customerChart.destroy();
+            }
+            
+            // Sort customers by total count
+            const sortedCustomers = Object.entries(customerData)
+                .sort((a, b) => b[1].total - a[1].total)
+                .slice(0, 10); // Top 10 customers
+            
+            const labels = sortedCustomers.map(([customer]) => customer);
+            const totalData = sortedCustomers.map(([, data]) => data.total);
+            const checkedInData = sortedCustomers.map(([, data]) => data.checkedIn);
+            const noShowData = sortedCustomers.map(([, data]) => data.noShow);
+            
+            this.customerChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total Guests',
+                            data: totalData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Checked-In',
+                            data: checkedInData,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'No-Shows',
+                            data: noShowData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Customer Breakdown'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        createFlightBreakdownChart(flightData) {
+            const ctx = document.getElementById('flightBreakdownChart');
+            if (!ctx) return;
+            
+            // Clear previous chart if exists
+            if (this.flightChart) {
+                this.flightChart.destroy();
+            }
+            
+            // Sort flights by total count
+            const sortedFlights = Object.entries(flightData)
+                .sort((a, b) => b[1].total - a[1].total)
+                .slice(0, 10); // Top 10 flights
+            
+            const labels = sortedFlights.map(([flight]) => flight);
+            const totalData = sortedFlights.map(([, data]) => data.total);
+            
+            this.flightChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: totalData,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(199, 199, 199, 0.7)',
+                            'rgba(83, 102, 255, 0.7)',
+                            'rgba(40, 159, 64, 0.7)',
+                            'rgba(210, 199, 199, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(199, 199, 199, 1)',
+                            'rgba(83, 102, 255, 1)',
+                            'rgba(40, 159, 64, 1)',
+                            'rgba(210, 199, 199, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Flight/Hotel Breakdown'
+                        }
+                    }
+                }
+            });
+        }
+
+        displayRecentActivities(activities) {
+            const tableBody = document.getElementById('recentActivityTable');
+            if (!tableBody) return;
+            
+            // Sort by time (most recent first)
+            activities.sort((a, b) => b.time - a.time);
+            
+            tableBody.innerHTML = '';
+            
+            if (activities.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            No recent activity
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Take only last 10 activities
+            const recentActivities = activities.slice(0, 10);
+            
+            recentActivities.forEach(activity => {
+                const timeStr = activity.time.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const dateStr = activity.time.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                let statusBadge = '';
+                if (activity.status === 'checked-in') {
+                    statusBadge = '<span class="status-badge status-checkedin">Checked-In</span>';
+                } else if (activity.status === 'checked-out') {
+                    statusBadge = '<span class="status-badge status-checkedout">Checked-Out</span>';
+                } else if (activity.status === 'no-show') {
+                    statusBadge = '<span class="status-badge status-noshow">No-Show</span>';
+                } else {
+                    statusBadge = '<span class="status-badge status-reserved">Reserved</span>';
+                }
+                
+                const focBadge = activity.foc ? '<span class="foc-badge">FOC</span>' : '';
+                const recheckedBadge = activity.rechecked ? '<span class="rechecked-badge">Rechecked</span>' : '';
+                
+                const row = `
+                    <tr>
+                        <td>${dateStr} ${timeStr}</td>
+                        <td>${activity.guest} ${recheckedBadge}</td>
+                        <td>${activity.customer}</td>
+                        <td>${activity.flight}</td>
+                        <td>${activity.activity}</td>
+                        <td>${statusBadge}</td>
+                        <td>${focBadge}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        clearOverviewFilters() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('overviewStartDate').value = today;
+            document.getElementById('overviewEndDate').value = today;
+            document.getElementById('overviewCustomerFilter').value = '';
+            this.loadOverviewData();
+        }
+
+        clearCheckinFilters() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('checkinDateFilter').value = today;
+            document.getElementById('checkinFlightFilter').value = '';
+            document.getElementById('checkinCustomerFilter').value = '';
+            document.getElementById('checkinFOCFilter').value = '';
+            this.loadCheckinData();
+        }
+
+        clearCheckoutFilters() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('checkoutDateFilter').value = today;
+            document.getElementById('checkoutFlightFilter').value = '';
+            document.getElementById('checkoutCustomerFilter').value = '';
+            document.getElementById('checkoutFOCFilter').value = '';
+            this.loadCheckoutData('checkedin');
+        }
+
+        clearReportFilters() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('reportFromDate').value = today;
+            document.getElementById('reportToDate').value = today;
+            document.getElementById('reportFlightFilter').value = '';
+            document.getElementById('reportCustomerFilter').value = '';
+            document.getElementById('reportFOCFilter').value = '';
+            document.getElementById('reportStatusFilter').value = '';
+        }
+
+        // ============== REPORT GENERATION METHODS ==============
+
+        async generateReport() {
+            const fromDateInput = document.getElementById('reportFromDate');
+            const toDateInput = document.getElementById('reportToDate');
+            const flightSelect = document.getElementById('reportFlightFilter');
+            const customerSelect = document.getElementById('reportCustomerFilter');
+            const focSelect = document.getElementById('reportFOCFilter');
+            const statusSelect = document.getElementById('reportStatusFilter');
+            
+            if (!fromDateInput || !toDateInput) return;
+            
+            const fromDate = fromDateInput.value;
+            const toDate = toDateInput.value;
+            const flightFilter = flightSelect ? flightSelect.value : '';
+            const customerFilter = customerSelect ? customerSelect.value : '';
+            const focFilter = focSelect ? focSelect.value : '';
+            const statusFilter = statusSelect ? statusSelect.value : '';
+            
+            if (fromDate && toDate && fromDate > toDate) {
+                alert('From date cannot be after To date');
+                return;
+            }
+            
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                const reservations = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    
+                    // Apply date filter
+                    if (fromDate && toDate) {
+                        const checkDate = data.checkoutDate || data.checkinDate || data.reservationDate;
+                        if (!checkDate) return;
+                        
+                        if (checkDate < fromDate || checkDate > toDate) {
+                            return;
+                        }
+                    }
+                    
+                    // Apply flight filter
+                    if (flightFilter && data.flightHotel !== flightFilter) return;
+                    
+                    // Apply customer filter
+                    if (customerFilter && data.customer !== customerFilter) return;
+                    
+                    // Apply FOC filter
+                    if (focFilter) {
+                        const isFOC = data.foc || false;
+                        if (focFilter === 'true' && !isFOC) return;
+                        if (focFilter === 'false' && isFOC) return;
+                    }
+                    
+                    // Apply status filter
+                    if (statusFilter && data.status !== statusFilter) return;
+                    
+                    reservations.push({ id, ...data });
+                });
+                
+                if (reservations.length === 0) {
+                    alert('No reservations found for the selected criteria.');
+                    return;
+                }
+                
+                this.displayReport(reservations, fromDate, toDate);
+            } catch (error) {
+                console.error('Error generating report:', error);
+                alert('Error generating report. Please try again.');
+            }
+        }
+
+        async generateNoShowReport() {
+            const fromDateInput = document.getElementById('reportFromDate');
+            const toDateInput = document.getElementById('reportToDate');
+            const flightSelect = document.getElementById('reportFlightFilter');
+            const customerSelect = document.getElementById('reportCustomerFilter');
+            
+            if (!fromDateInput || !toDateInput) return;
+            
+            const fromDate = fromDateInput.value;
+            const toDate = toDateInput.value;
+            const flightFilter = flightSelect ? flightSelect.value : '';
+            const customerFilter = customerSelect ? customerSelect.value : '';
+            
+            if (fromDate && toDate && fromDate > toDate) {
+                alert('From date cannot be after To date');
+                return;
+            }
+            
+            try {
+                const snapshot = await this.db.collection('reservations')
+                    .where('status', '==', 'no-show')
+                    .get();
+                
+                const reservations = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    
+                    // Apply date filter
+                    if (fromDate && toDate) {
+                        const checkDate = data.reservationDate;
+                        if (!checkDate) return;
+                        
+                        if (checkDate < fromDate || checkDate > toDate) {
+                            return;
+                        }
+                    }
+                    
+                    // Apply flight filter
+                    if (flightFilter && data.flightHotel !== flightFilter) return;
+                    
+                    // Apply customer filter
+                    if (customerFilter && data.customer !== customerFilter) return;
+                    
+                    reservations.push({ id, ...data });
+                });
+                
+                if (reservations.length === 0) {
+                    alert('No no-show reservations found for the selected criteria.');
+                    return;
+                }
+                
+                this.displayNoShowReport(reservations, fromDate, toDate);
+            } catch (error) {
+                console.error('Error generating no-show report:', error);
+                alert('Error generating no-show report. Please try again.');
+            }
+        }
+
+        async generateFOCReport() {
+            const fromDateInput = document.getElementById('reportFromDate');
+            const toDateInput = document.getElementById('reportToDate');
+            const flightSelect = document.getElementById('reportFlightFilter');
+            const customerSelect = document.getElementById('reportCustomerFilter');
+            
+            if (!fromDateInput || !toDateInput) return;
+            
+            const fromDate = fromDateInput.value;
+            const toDate = toDateInput.value;
+            const flightFilter = flightSelect ? flightSelect.value : '';
+            const customerFilter = customerSelect ? customerSelect.value : '';
+            
+            if (fromDate && toDate && fromDate > toDate) {
+                alert('From date cannot be after To date');
+                return;
+            }
+            
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                const reservations = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const id = doc.id;
+                    
+                    // Only include FOC guests
+                    if (!data.foc) return;
+                    
+                    // Apply date filter
+                    if (fromDate && toDate) {
+                        const checkDate = data.checkoutDate || data.checkinDate || data.reservationDate;
+                        if (!checkDate) return;
+                        
+                        if (checkDate < fromDate || checkDate > toDate) {
+                            return;
+                        }
+                    }
+                    
+                    // Apply flight filter
+                    if (flightFilter && data.flightHotel !== flightFilter) return;
+                    
+                    // Apply customer filter
+                    if (customerFilter && data.customer !== customerFilter) return;
+                    
+                    reservations.push({ id, ...data });
+                });
+                
+                if (reservations.length === 0) {
+                    alert('No FOC reservations found for the selected criteria.');
+                    return;
+                }
+                
+                this.displayFOCReport(reservations, fromDate, toDate);
+            } catch (error) {
+                console.error('Error generating FOC report:', error);
+                alert('Error generating FOC report. Please try again.');
+            }
+        }
+
+        async generateChargeSheet() {
+            const fromDateInput = document.getElementById('reportFromDate');
+            const toDateInput = document.getElementById('reportToDate');
+            const flightSelect = document.getElementById('reportFlightFilter');
+            const customerSelect = document.getElementById('reportCustomerFilter');
+            
+            if (!fromDateInput || !toDateInput) return;
+            
+            const fromDate = fromDateInput.value;
+            const toDate = toDateInput.value;
+            const flightFilter = flightSelect ? flightSelect.value : '';
+            const customerFilter = customerSelect ? customerSelect.value : '';
+            
+            if (fromDate && toDate && fromDate > toDate) {
+                alert('From date cannot be after To date');
+                return;
+            }
+            
+            try {
+                const snapshot = await this.db.collection('reservations').get();
+                const reservations = [];
+                
+                // Get checked-in reservations only (non-FOC)
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // Skip FOC guests
+                    if (data.foc) return;
+                    
+                    // Apply date filter
+                    if (fromDate && toDate) {
+                        const checkDate = data.checkinDate || data.reservationDate;
+                        if (!checkDate) return;
+                        
+                        if (checkDate < fromDate || checkDate > toDate) {
+                            return;
+                        }
+                    }
+                    
+                    // Apply flight filter
+                    if (flightFilter && data.flightHotel !== flightFilter) return;
+                    
+                    // Apply customer filter
+                    if (customerFilter && data.customer !== customerFilter) return;
+                    
+                    // Only include checked-in and checked-out reservations
+                    if (data.status === 'checked-in' || data.status === 'checked-out') {
+                        reservations.push({ id: doc.id, ...data });
+                    }
+                });
+                
+                if (reservations.length === 0) {
+                    alert('No chargeable guests found for the selected criteria.');
+                    return;
+                }
+                
+                this.displayChargeSheet(reservations, fromDate, toDate);
+            } catch (error) {
+                console.error('Error generating charge sheet:', error);
+                alert('Error generating charge sheet. Please try again.');
+            }
+        }
+
+        // ============== EXCEL UPLOAD METHODS ==============
+
         handleExcelUpload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -3007,7 +4916,9 @@
                     status: 'reserved',
                     createdAt: new Date().toISOString(),
                     createdBy: this.currentUser.username,
-                    source: 'excel_import'
+                    source: 'excel_import',
+                    recheckCount: 0,
+                    isRechecked: false
                 };
                 
                 console.log('Created reservation:', reservation);
@@ -3292,7 +5203,11 @@
             for (let i = 0; i < reservations.length; i++) {
                 const reservation = reservations[i];
                 try {
-                    await this.db.collection('reservations').add(reservation);
+                    await this.db.collection('reservations').add({
+                        ...reservation,
+                        recheckCount: 0,
+                        isRechecked: false
+                    });
                     successCount++;
                     
                     if (reservation.customer) this.customers.add(reservation.customer);
@@ -3325,7 +5240,7 @@
             
             this.clearExcelPreview();
             this.loadCheckinData();
-            this.loadCheckoutData();
+            this.loadCheckoutData('checkedin');
             this.loadFlightOptionsForCheckin();
             this.loadFlightOptionsForCheckout();
             this.loadCustomerOptionsForCheckin();
@@ -3372,6 +5287,8 @@
             
             alert('Excel template downloaded. Please fill in the data following the format.');
         }
+
+        // ============== EXCEL EXPORT METHODS ==============
 
         async exportToExcel() {
             const fromDateInput = document.getElementById('reportFromDate');
@@ -3439,17 +5356,18 @@
 
         exportDataToExcel(data) {
             const excelData = data.map(item => ({
+                'Guest Name': item.guestName,
                 'Customer': item.customer,
-                'Reservation Date': item.reservationDate,
                 'Flight/Hotel': item.flightHotel,
                 'STA/ETA': item.sta,
                 'Direction': item.direction,
-                'Guest Name': item.guestName,
-                'Nationality': item.nationality,
-                'FOC': item.foc ? 'Yes' : 'No',
-                'Status': item.status,
                 'Check-In Time': item.checkinTime || '',
                 'Check-Out Time': item.checkoutTime || '',
+                'FOC': item.foc ? 'Yes' : 'No',
+                'Status': item.status,
+                'Rechecked': item.isRechecked ? 'Yes' : 'No',
+                'Recheck Count': item.recheckCount || 0,
+                'Recheck Reason': item.recheckReason || '',
                 'No-Show Reason': item.noShowReason || '',
                 'Remarks': item.remarks || '',
                 'Created By': item.createdBy,
@@ -3470,7 +5388,6 @@
 
     // Initialize application
     const app = new ReservationSystem();
-    
     </script>
 </body>
 </html>
