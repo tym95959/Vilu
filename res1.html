@@ -2170,23 +2170,49 @@
                 const recheckinRemark = `Rechecked-In: ${reason} (${new Date().toLocaleDateString()} ${checkinTime})`;
                 const updatedRemarks = previousRemarks ? `${previousRemarks} | ${recheckinRemark}` : recheckinRemark;
                 
+                // Create recheckin history entry
+                const recheckinHistory = currentData.recheckinHistory || [];
+                recheckinHistory.push({
+                    recheckedAt: now.toISOString(),
+                    recheckedBy: this.currentUser.username,
+                    newSta: newSta,
+                    actualTime: actualTime,
+                    foc: foc,
+                    reason: reason,
+                    timestamp: now.toISOString()
+                });
+                
                 await this.db.collection('reservations').doc(reservationId).update({
                     status: 'rechecked',
                     sta: newSta,
                     foc: foc,
-                    actualCheckinTime: actualTime,
-                    checkinTime: checkinTime,
-                    checkinDateTime: now.toISOString(),
-                    checkinBy: this.currentUser.username,
-                    checkinDate: new Date().toISOString().split('T')[0],
+                    actualCheckinTime: actualTime, // This is the new checkin time from the form
+                    // Preserve original checkin fields - DO NOT UPDATE THESE:
+                    // checkinTime: checkinTime, ← REMOVED - keeps original
+                    // checkinDateTime: now.toISOString(), ← REMOVED - keeps original
+                    // checkinDate: new Date().toISOString().split('T')[0], ← REMOVED - keeps original
+                    // checkinBy: this.currentUser.username, ← REMOVED - keeps original
+                    
+                    // Add recheckin-specific fields
+                    recheckedAt: now.toISOString(),
+                    recheckedBy: this.currentUser.username,
+                    recheckinTime: checkinTime, // New field for recheckin time
+                    recheckinDateTime: now.toISOString(), // New field for recheckin datetime
+                    recheckinDate: new Date().toISOString().split('T')[0], // New field for recheckin date
+                    
+                    // Keep checkout fields as null since guest is checking back in
                     checkoutDate: null,
                     checkoutTime: null,
                     checkoutBy: null,
                     checkoutDateTime: null,
+                    
                     remarks: updatedRemarks,
                     recheckinReason: reason,
                     recheckinCount: (currentData.recheckinCount || 0) + 1,
-                    lastRecheckinAt: now.toISOString()
+                    lastRecheckinAt: now.toISOString(),
+                    
+                    // Store recheckin history
+                    recheckinHistory: recheckinHistory
                 });
                 
                 const modal = bootstrap.Modal.getInstance(document.getElementById('recheckinModal'));
